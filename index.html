@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Portal de Jogos</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #111;
+            color: #fff;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        header h1 {
+            font-size: 36px;
+            color: #ffcc00;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Estilo da Grade estilo Netflix/Steam */
+        .container-jogos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Card do Jogo */
+        .card-jogo {
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-jogo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(255, 204, 0, 0.2);
+            border-color: #ffcc00;
+        }
+
+        .card-jogo img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+        }
+
+        .card-info {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        .card-info h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .card-info p {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+
+        .btn-jogar {
+            display: block;
+            text-align: center;
+            background: #ffcc00;
+            color: #111;
+            padding: 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn-jogar:hover {
+            background: #ffaa00;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>MEU PORTAL DE JOGOS</h1>
+        <p>Escolha sua experiência e divirta-se</p>
+    </header>
+
+    <div class="container-jogos">
+
+        <!-- JOGO 1 (Basta duplicar este bloco para adicionar novos jogos) -->
+        <div class="card-jogo">
+            <img src="URL_DA_IMAGEM_CAPA_1.jpg" alt="Capa do Jogo">
+            <div class="card-info">
+                <div>
+                    <h3>O Observatório</h3>
+                    <p>Um pesadelo de percepção e mistério.</p>
+                </div>
+                <a href="LINK_DO_JOGO_1" class="btn-jogar">JOGAR AGORA</a>
+            </div>
+        </div>
+
+        <!-- JOGO 2 (Exemplo de segundo jogo) -->
+        <div class="card-jogo">
+            <img src="URL_DA_IMAGEM_CAPA_2.jpg" alt="Capa do Jogo">
+            <div class="card-info">
+                <div>
+                    <h3>Nome do Jogo 2</h3>
+                    <p>Breve descrição sobre o desafio.</p>
+                </div>
+                <a href="LINK_DO_JOGO_2" class="btn-jogar">JOGAR AGORA</a>
+            </div>
+        </div>
+
+        <!-- Você pode adicionar mais blocos .card-jogo aqui embaixo conforme criar novos jogos -->
+
+    </div>
+
+</body>
+</html>
