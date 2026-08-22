@@ -1,0 +1,3003 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>O Que Devo Fazer?</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0b0c10;
+    color: #fff;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+  /* HUD DE STATUS */
+  #hud {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0,0,0,0.85);
+    padding: 12px 16px;
+    border: 2px solid #5aa9ff;
+    z-index: 10;
+    width: 220px;
+    border-radius: 4px;
+  }
+  .bar-container {
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: bold;
+  }
+  .bar-bg {
+    background: #333;
+    height: 10px;
+    width: 100%;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 2px;
+    border: 1px solid #000;
+  }
+  .bar-fill { height: 100%; transition: width 0.2s; }
+  #hp-bar { background: #e74c3c; width: 100%; }
+  #stamina-bar { background: #f1c40f; width: 100%; }
+  #thirst-bar { background: #3498db; width: 100%; }
+  #hunger-bar { background: #e67e22; width: 100%; }
+
+  /* INVENTÁRIO */
+  #inventory-ui {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(15, 15, 25, 0.92);
+    padding: 12px;
+    border: 2px solid #e67e22;
+    box-shadow: 0 0 10px rgba(230, 126, 34, 0.4);
+    z-index: 10;
+    font-size: 11px;
+    color: #e67e22;
+    border-radius: 6px;
+    width: 230px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .album-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed #e67e22;
+  }
+
+  #item-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    list-style: none;
+    padding-top: 4px;
+  }
+
+  .item-card {
+    background: #1a1a24;
+    border: 2px solid #3a3a50;
+    border-radius: 6px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    transition: transform 0.15s, border-color 0.15s;
+    cursor: pointer;
+  }
+
+  .item-card:hover {
+    transform: scale(1.04);
+    border-color: #f39c12;
+  }
+
+  .item-badge {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    font-size: 9px;
+    background: #e67e22;
+    color: #000;
+    font-weight: bold;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  .item-canvas {
+    image-rendering: pixelated;
+    margin: 4px 0;
+    background: #0d0d14;
+    border: 1px solid #2a2a3a;
+    border-radius: 4px;
+  }
+
+  .item-label {
+    font-size: 9px;
+    color: #fff;
+    line-height: 1.1;
+    margin-top: 2px;
+    word-break: break-word;
+  }
+
+  .empty-album {
+    grid-column: span 2;
+    text-align: center;
+    color: #777;
+    font-style: italic;
+    padding: 10px 0;
+  }
+
+  #dialog {
+    position: absolute;
+    bottom: 25px;
+    background: #111;
+    border: 3px solid #5aa9ff;
+    padding: 12px 20px;
+    display: none;
+    z-index: 10;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 5px 5px 0 #000;
+  }
+  #info-toast {
+    position: absolute;
+    bottom: 85px;
+    background: rgba(241, 196, 15, 0.95);
+    color: #000;
+    font-weight: bold;
+    padding: 6px 12px;
+    border: 2px solid #000;
+    border-radius: 4px;
+    display: none;
+    z-index: 10;
+  }
+  #prompt {
+    position: absolute;
+    background: #f1c40f;
+    color: #000;
+    font-weight: bold;
+    padding: 4px 8px;
+    border: 2px solid #000;
+    border-radius: 4px;
+    display: none;
+    z-index: 20;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+  }
+  canvas {
+    background: #000;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    image-rendering: pixelated;
+  }
+
+  /* MENU INICIAL / SAVE */
+  #start-menu {
+    position: absolute;
+    inset: 0;
+    background: #0b0c10;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    color: #fff;
+  }
+  #title-canvas {
+    image-rendering: pixelated;
+    box-shadow: 0 0 40px rgba(90, 169, 255, 0.25);
+    border: 3px solid #2a2a3a;
+    border-radius: 6px;
+    margin-bottom: 18px;
+  }
+  #start-menu h1 {
+    font-size: 32px;
+    color: #5aa9ff;
+    margin-bottom: 4px;
+    text-shadow: 3px 3px 0 #000;
+    letter-spacing: 1px;
+  }
+  #start-menu .subtitle {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 22px;
+  }
+  #start-menu .btn {
+    background: #1a1a24;
+    border: 3px solid #5aa9ff;
+    color: #fff;
+    font-family: monospace;
+    font-size: 16px;
+    padding: 12px 32px;
+    margin: 6px;
+    cursor: pointer;
+    border-radius: 4px;
+    min-width: 240px;
+    transition: all 0.15s;
+  }
+  #start-menu .btn:hover {
+    background: #5aa9ff;
+    color: #000;
+    transform: scale(1.05);
+  }
+  #start-menu .btn.secondary {
+    border-color: #e67e22;
+  }
+  #start-menu .btn.secondary:hover {
+    background: #e67e22;
+    color: #000;
+  }
+  #start-menu .save-info {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #f1c40f;
+    text-align: center;
+    max-width: 320px;
+  }
+  #hud, #inventory-ui, #prompt, #dialog, #info-toast {
+    display: none;
+  }
+  .game-started #hud,
+  .game-started #inventory-ui {
+    display: block;
+  }
+
+  /* BAÚ E ÁLBUNS */
+  #storage-ui, #card-album-ui, #skill-album-ui {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 15, 25, 0.97);
+    border: 3px solid #e67e22;
+    border-radius: 8px;
+    padding: 16px;
+    z-index: 50;
+    width: 340px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+  }
+  #card-album-ui {
+    border-color: #5aa9ff;
+  }
+  #skill-album-ui {
+    border-color: #2ecc71;
+    width: 380px;
+  }
+  #shop-ui {
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 380px; max-height: 80vh; overflow-y: auto;
+    z-index: 55; display: none;
+    background: rgba(18, 15, 12, 0.98); border: 3px solid #f39c12;
+    border-radius: 8px; padding: 16px; box-shadow: 0 0 30px rgba(0,0,0,0.8);
+  }
+  .shop-coins { color: #f1c40f; font-size: 12px; margin: 8px 0; }
+  .shop-item { display: flex; align-items: center; gap: 10px; background: #1a1a24; border: 1px solid #4a3820; border-radius: 6px; padding: 8px; margin: 7px 0; }
+  .shop-item button { margin-left: auto; background: #1e8449; border: 1px solid #2ecc71; border-radius: 4px; color: #fff; cursor: pointer; font: 11px monospace; padding: 7px; }
+  .shop-item button:hover { background: #2ecc71; color: #000; }
+  .skill-stats-box {
+    background: #12121a;
+    border: 1px solid #2ecc71;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .skill-stats-box span {
+    color: #2ecc71;
+    font-weight: bold;
+  }
+  .sticker-slot {
+    position: relative;
+  }
+  .sticker-slot.pasted {
+    opacity: 0.45;
+    border-color: #c0392b !important;
+  }
+  .sticker-x {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    color: #e74c3c;
+    font-size: 32px;
+    font-weight: bold;
+    text-shadow: 0 0 4px #000;
+    pointer-events: none;
+    line-height: 1;
+  }
+  .sticker-slot.available {
+    border-color: #2ecc71 !important;
+    cursor: pointer;
+  }
+  .sticker-slot.available:hover {
+    background: #1a2e1a;
+  }
+  .storage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .storage-slot {
+    background: #1a1a24;
+    border: 2px solid #3a3a50;
+    border-radius: 6px;
+    height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 9px;
+    color: #ccc;
+    text-align: center;
+    position: relative;
+  }
+  .storage-slot:hover {
+    border-color: #f39c12;
+  }
+  .storage-slot.empty {
+    color: #555;
+    border-style: dashed;
+  }
+  .storage-slot .slot-num {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    font-size: 8px;
+    color: #666;
+  }
+
+  /* CADERNO DE MISSÕES */
+  #quest-log-ui {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(20, 18, 12, 0.97);
+    border: 3px solid #c9a227;
+    border-radius: 8px;
+    padding: 16px;
+    z-index: 50;
+    width: 380px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    display: none;
+  }
+  #quest-log-ui .album-title {
+    color: #c9a227;
+    border-bottom-color: #c9a227;
+  }
+  .quest-entry {
+    background: #1a1810;
+    border: 1px solid #3a3520;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .quest-entry.completed {
+    border-color: #c9a227;
+  }
+  .quest-entry.active {
+    border-color: #5aa9ff;
+    box-shadow: 0 0 8px rgba(90, 169, 255, 0.3);
+  }
+  .quest-entry .q-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #f1c40f;
+    margin-bottom: 4px;
+  }
+  .quest-entry.completed .q-title {
+    color: #c9a227;
+  }
+  .quest-entry.active .q-title {
+    color: #5aa9ff;
+  }
+  .quest-entry .q-desc {
+    font-size: 10px;
+    color: #bbb;
+    line-height: 1.35;
+  }
+  .quest-entry .q-status {
+    font-size: 9px;
+    margin-top: 4px;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+
+<div id="start-menu">
+  <canvas id="title-canvas" width="420" height="260"></canvas>
+  <h1>O Que Devo Fazer?</h1>
+  <div class="subtitle">A pergunta que nunca acaba...</div>
+  <button class="btn" id="btn-continue" style="display:none;">▶ Continuar</button>
+  <button class="btn secondary" id="btn-newgame">✦ Novo Jogo</button>
+  <div class="save-info" id="save-info"></div>
+</div>
+
+<div id="hud">
+  <div class="bar-container">
+    VIDA: <span id="hp-txt">60</span>
+    <div class="bar-bg"><div id="hp-bar" class="bar-fill"></div></div>
+  </div>
+  <div class="bar-container">
+    STAMINA (Correr [Shift]): <span id="stamina-txt">100</span>
+    <div class="bar-bg"><div id="stamina-bar" class="bar-fill"></div></div>
+  </div>
+  <div class="bar-container">
+    SEDE: <span id="thirst-txt">80</span>
+    <div class="bar-bg"><div id="thirst-bar" class="bar-fill"></div></div>
+  </div>
+  <div class="bar-container">
+    FOME: <span id="hunger-txt">80</span>
+    <div class="bar-bg"><div id="hunger-bar" class="bar-fill"></div></div>
+  </div>
+  <div class="bar-container" style="margin-top:8px; border-top:1px solid #333; padding-top:6px;">
+    🪙 COINS: <span id="coins-txt" style="color:#f1c40f; font-weight:bold;">0</span>
+  </div>
+</div>
+
+<div id="inventory-ui">
+  <div class="album-title">🎒 Inventário</div>
+  <div id="item-list">
+    <div class="empty-album">Nenhum item recolhido</div>
+  </div>
+  <span style="font-size:9px; color:#aaa; display:block; margin-top:8px; text-align:center;">
+    [1-9] usar • [B] Baú • [C] Cartas • [K] Skills • [J] Caderno
+  </span>
+</div>
+
+<!-- BAÚ DO ARMÁRIO -->
+<div id="storage-ui" style="display:none;">
+  <div class="album-title">🗄️ Baú do Armário (8 slots)</div>
+  <div id="storage-list" class="storage-grid"></div>
+  <div style="font-size:10px; color:#aaa; margin-top:8px; text-align:center;">
+    Clique num item do inventário para guardar<br>
+    Clique no baú para pegar de volta • [Esc] fechar
+  </div>
+  <button id="btn-close-storage" style="margin-top:10px; width:100%; padding:6px; background:#333; border:2px solid #e67e22; color:#fff; font-family:monospace; cursor:pointer;">Fechar Baú</button>
+</div>
+
+<!-- ÁLBUM DE CARTAS -->
+<div id="card-album-ui" style="display:none;">
+  <div class="album-title">🃏 Álbum de Cartas do Torneio</div>
+  <div id="card-album-list" class="storage-grid"></div>
+  <div style="font-size:10px; color:#aaa; margin-top:8px; text-align:center;">
+    Cartas coletadas para o grande torneio futuro
+  </div>
+  <button id="btn-close-cards" style="margin-top:10px; width:100%; padding:6px; background:#333; border:2px solid #5aa9ff; color:#fff; font-family:monospace; cursor:pointer;">Fechar Álbum</button>
+</div>
+
+<!-- ÁLBUM DE FIGURINHAS -->
+<div id="skill-album-ui" style="display:none;">
+  <div class="album-title" style="color:#2ecc71; border-bottom-color:#2ecc71;">📗 Álbum de Figurinhas (Skills)</div>
+  <div class="skill-stats-box" id="skill-stats-box">Carregando skills...</div>
+  <div style="font-size:11px; color:#aaa; margin-bottom:6px;">Figurinhas coladas:</div>
+  <div id="skill-pasted-list" class="storage-grid"></div>
+  <div style="font-size:11px; color:#aaa; margin:12px 0 6px;">Colar do inventário (clique):</div>
+  <div id="skill-available-list" class="storage-grid"></div>
+  <div style="font-size:10px; color:#888; margin-top:10px; text-align:center;">
+    Cada figurinha só cola uma vez. [K] fecha
+  </div>
+  <button id="btn-close-skills" style="margin-top:10px; width:100%; padding:6px; background:#333; border:2px solid #2ecc71; color:#fff; font-family:monospace; cursor:pointer;">Fechar Álbum</button>
+</div>
+
+<div id="shop-ui" aria-live="polite">
+  <div class="album-title" id="shop-title" style="color:#f39c12; border-bottom-color:#f39c12;">🛒 Comércio</div>
+  <div class="shop-coins">🪙 Suas coins: <span id="shop-coins">0</span></div>
+  <div id="shop-list"></div>
+  <button id="btn-close-shop" style="margin-top:10px; width:100%; padding:6px; background:#333; border:2px solid #f39c12; color:#fff; font-family:monospace; cursor:pointer;">Fechar Comércio</button>
+</div>
+
+<!-- CADERNO DE MISSÕES -->
+<div id="quest-log-ui">
+  <div class="album-title">📔 Caderno de Missões</div>
+  <div id="quest-log-list"></div>
+  <div style="font-size:10px; color:#aaa; margin-top:10px; text-align:center;">
+    A história do que você já fez... e do que ainda falta
+  </div>
+  <button id="btn-close-quests" style="margin-top:10px; width:100%; padding:6px; background:#333; border:2px solid #c9a227; color:#fff; font-family:monospace; cursor:pointer;">Fechar Caderno</button>
+</div>
+
+<div id="info-toast"></div>
+<div id="prompt">[E] Entrar</div>
+<div id="dialog"></div>
+<canvas id="gameCanvas" width="900" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const dialog = document.getElementById("dialog");
+const promptUI = document.getElementById("prompt");
+const infoToast = document.getElementById("info-toast");
+
+// --- SISTEMA DE SOM (WEB AUDIO API) ---
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new AudioCtx();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function playDoorSound() {
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const creakOsc = audioCtx.createOscillator();
+  const creakGain = audioCtx.createGain();
+  creakOsc.type = 'sawtooth';
+  creakOsc.frequency.setValueAtTime(180, now);
+  creakOsc.frequency.exponentialRampToValueAtTime(320, now + 0.25);
+  creakOsc.frequency.exponentialRampToValueAtTime(140, now + 0.45);
+  creakGain.gain.setValueAtTime(0.12, now);
+  creakGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+  creakOsc.connect(creakGain);
+  creakGain.connect(audioCtx.destination);
+  creakOsc.start(now);
+  creakOsc.stop(now + 0.45);
+}
+
+function playStepSound() {
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(90, now);
+  gain.gain.setValueAtTime(0.04, now);
+  gain.gain.linearRampToValueAtTime(0, now + 0.04);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.04);
+}
+
+function playRewardSound() {
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const notes = [523.25, 659.25, 783.99, 1046.50];
+  notes.forEach((freq, idx) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+    gain.gain.setValueAtTime(0.1, now + idx * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now + idx * 0.08);
+    osc.stop(now + idx * 0.08 + 0.2);
+  });
+}
+
+const GRID_SIZE = 8;
+const TILE_W = 64; 
+const TILE_H = 32;
+const WALL_H = 120;
+const ORIGIN_X = canvas.width / 2;
+const ORIGIN_Y = 220;
+
+let currentRoom = 'bedroom';
+
+// FLUXO DE QUESTS:
+// START -> ... -> TONHO_MISSION_DONE -> FLOR_* -> DONA_LENA_* -> TIRE_*
+let questState = 'START'; 
+
+let hasGameboy = false;
+let foundLJ = false;
+let receivedTonhoReward = false;
+let hasDuelledMaster = false;
+let storage = [];
+let cardAlbum = [];
+let skillAlbum = [];
+let skillAlbumOpen = false;
+let coins = 0;
+
+let skills = { thirst: 0, hunger: 0, stamina: 0, luck: 0 };
+
+const SKILL_STICKERS = {
+  soda:  { stickerId: 'fig_soda',  name: 'Figurinha Refrigerante', skill: 'thirst',  bonus: 1.5, label: 'Sede' },
+  candy: { stickerId: 'fig_candy', name: 'Figurinha Bala',         skill: 'hunger',  bonus: 1.5, label: 'Fome' },
+  snack: { stickerId: 'fig_snack', name: 'Figurinha Salgadinho',   skill: 'stamina', bonus: 1.0, label: 'Stamina' },
+  gift:  { stickerId: 'fig_gift',  name: 'Figurinha Presente',     skill: 'luck',    bonus: 1.0, label: 'Sorte' },
+  letter:{ stickerId: 'fig_letter', name: 'Figurinha Bilhete',     skill: 'luck',    bonus: 0.8, label: 'Sorte' },
+  envelope: { stickerId: 'fig_flower', name: 'Figurinha Flor',     skill: 'luck',    bonus: 1.2, label: 'Sorte' },
+  cesta: { stickerId: 'fig_cesta', name: 'Figurinha Cesta',        skill: 'hunger',  bonus: 1.0, label: 'Fome' },
+  tire:  { stickerId: 'fig_tire', name: 'Figurinha Pneu',          skill: 'stamina', bonus: 1.2, label: 'Stamina' }
+};
+
+function ensureSkillReward(name, type) {
+  const def = SKILL_STICKERS[type];
+  if (!def || hasSticker(def.stickerId)) return;
+  if (!inventory.some(item => item.name === name && item.type === type)) {
+    inventory.push({ name, type });
+  }
+}
+
+function restorePastSkillRewards() {
+  const afterSnack = ['TONHO_MISSION_DONE','FLOR_ASK_ZE','FLOR_GOT_INFO','FLOR_BUY_GIFT','FLOR_DELIVER','FLOR_DONE','DONA_LENA_QUEST','DONA_LENA_DELIVER','DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'];
+  const afterGift = ['FLOR_DONE','DONA_LENA_QUEST','DONA_LENA_DELIVER','DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'];
+  const afterCesta = ['DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'];
+  if (afterSnack.includes(questState)) ensureSkillReward('Carta do Salgadinho', 'snack');
+  if (afterGift.includes(questState)) ensureSkillReward('Carta do Presente da Dona Lena', 'gift');
+  if (afterCesta.includes(questState)) ensureSkillReward('Carta da Cesta de Frutas', 'cesta');
+  if (questState === 'TIRE_COMPLETE') ensureSkillReward('Carta do Pneu Novo', 'tire');
+}
+
+let completedQuests = [];
+let unlockedDonaLena = false;
+let hasGiftForLena = false;
+let unlockedBarraFunda = false;
+let tireCheckedMarket = false;
+let unlockedSilvaPereira = false;
+let hasCestaFrutas = false;
+let metOmar = false;
+let returnedFlowerCard = false;
+
+const QUEST_DEFS = {
+  'q_gameboy': {
+    id: 'q_gameboy',
+    name: 'O Game Boy Perdido',
+    desc: 'Meu irmão perdeu o Game Boy. Precisei falar com a Mãe, achar o aparelho em cima da mesa verde e devolver pra ele. Em troca ganhei uma bala.',
+    completedWhen: ['DELIVERED_GAMEBOY', 'TALK_MOM_DAD_QUEST', 'TALKED_DAD', 'STREET_UNLOCKED', 'FIND_LJ', 'RETURN_TO_NEIGHBOR', 'NEIGHBOR_QUEST_DONE', 'TONHO_MISSION', 'TONHO_MISSION_DONE']
+  },
+  'q_bilhete': {
+    id: 'q_bilhete',
+    name: 'O Bilhete da Mãe',
+    desc: 'A Mãe me pediu para levar um bilhete até o Pai na garagem. Depois que entreguei, ela liberou a porta da rua e ainda me deu um refrigerante.',
+    completedWhen: ['STREET_UNLOCKED', 'FIND_LJ', 'RETURN_TO_NEIGHBOR', 'NEIGHBOR_QUEST_DONE', 'TONHO_MISSION', 'TONHO_MISSION_DONE']
+  },
+  'q_lj': {
+    id: 'q_lj',
+    name: 'Cadê o LJ?',
+    desc: 'O Seu Zé estava desesperado porque o filho LJ tinha sumido. Encontrei o menino perto do banco da praça e avisei o pai. Como agradecimento, ele me deu a carta Guardião do Bairro.',
+    completedWhen: ['NEIGHBOR_QUEST_DONE', 'TONHO_MISSION', 'TONHO_MISSION_DONE']
+  },
+  'q_salgadinho': {
+    id: 'q_salgadinho',
+    name: 'Entrega do Salgadinho',
+    desc: 'O Seu Tonho me pediu para entregar um pacote de salgadinho para o LJ. Fiz a entrega e, de volta ao mercadinho, ganhei a carta Mercante do Salgadinho.',
+    completedWhen: ['TONHO_MISSION_DONE']
+  },
+  'q_duelo': {
+    id: 'q_duelo',
+    name: 'Primeiro Duelo no Torneio',
+    desc: 'Enfrentei o Mestre do Torneio em um duelo de cartas. Foi só o começo... o grande torneio ainda está por vir.',
+    completedWhen: []
+  },
+  'q_flor': {
+    id: 'q_flor',
+    name: 'A Flor Esquecida',
+    desc: 'Seu Armando me deu um envelope com uma flor antiga. Perguntei ao Seu Zé, comprei um presente no mercadinho e entreguei para a Dona Lena.',
+    completedWhen: ['FLOR_DONE', 'DONA_LENA_QUEST', 'DONA_LENA_DELIVER', 'DONA_LENA_DONE', 'TIRE_START', 'TIRE_NO_MARKET', 'TIRE_DONE', 'TIRE_HAS_TIRE', 'TIRE_COMPLETE']
+  },
+  'q_cesta': {
+    id: 'q_cesta',
+    name: 'A Cesta da Dona Lena',
+    desc: 'A Dona Lena mandou uma cesta de frutas pro velho amigo Seu Nestor, no Bairro Silva Pereira. Ao entregar, conheci a Quitanda do Seu Omar.',
+    completedWhen: ['DONA_LENA_DONE', 'TIRE_START', 'TIRE_NO_MARKET', 'TIRE_DONE', 'TIRE_HAS_TIRE', 'TIRE_COMPLETE']
+  },
+  'q_pneu': {
+    id: 'q_pneu',
+    name: 'O Pneu do Carro Velho',
+    desc: 'Apareceu um carro velho na garagem do Pai precisando de um pneu. No mercadinho do Tonho não tinha, então fui até a Loja de Autopeças do Seu Moura na Barra Funda.',
+    completedWhen: ['TIRE_COMPLETE']
+  }
+};
+
+let stats = {
+  hp: 60,
+  maxHp: 100,
+  stamina: 100,
+  maxStamina: 100,
+  thirst: 80,
+  maxThirst: 100,
+  hunger: 80,
+  maxHunger: 100
+};
+
+let inventory = [];
+
+let player = { 
+  x: 4, 
+  y: 4, 
+  dir: 'down',
+  isMoving: false,
+  idleTimer: 0,
+  walkFrame: 0
+};
+
+const keys = {};
+let gameStarted = false;
+const SAVE_KEY = 'rpg_bairro_save_v1';
+
+// --- SISTEMA DE SAVE ---
+function saveGame() {
+  if (!gameStarted) return;
+  const data = {
+    version: 2,
+    timestamp: Date.now(),
+    questState,
+    hasGameboy,
+    foundLJ,
+    receivedTonhoReward,
+    hasDuelledMaster,
+    coins,
+    unlockedDonaLena,
+    hasGiftForLena,
+    unlockedBarraFunda,
+    tireCheckedMarket,
+    unlockedSilvaPereira,
+    hasCestaFrutas,
+    metOmar,
+    returnedFlowerCard,
+    completedQuests: [...completedQuests],
+    currentRoom,
+    stats: { ...stats },
+    inventory: inventory.map(i => ({ ...i })),
+    storage: storage.map(i => ({ ...i })),
+    cardAlbum: cardAlbum.map(i => ({ ...i })),
+    skillAlbum: skillAlbum.map(i => ({ ...i })),
+    skills: { ...skills },
+    player: {
+      x: player.x,
+      y: player.y,
+      dir: player.dir
+    }
+  };
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn('Não foi possível salvar:', e);
+  }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || (data.version !== 1 && data.version !== 2)) return false;
+
+    questState = data.questState || 'START';
+    hasGameboy = !!data.hasGameboy;
+    foundLJ = !!data.foundLJ;
+    receivedTonhoReward = !!data.receivedTonhoReward;
+    hasDuelledMaster = !!data.hasDuelledMaster;
+    coins = data.coins ?? 0;
+    unlockedDonaLena = !!data.unlockedDonaLena;
+    hasGiftForLena = !!data.hasGiftForLena;
+    unlockedBarraFunda = !!data.unlockedBarraFunda;
+    tireCheckedMarket = !!data.tireCheckedMarket;
+    unlockedSilvaPereira = !!data.unlockedSilvaPereira;
+    hasCestaFrutas = !!data.hasCestaFrutas;
+    metOmar = !!data.metOmar;
+    returnedFlowerCard = !!data.returnedFlowerCard;
+    completedQuests = Array.isArray(data.completedQuests) ? [...data.completedQuests] : [];
+    currentRoom = data.currentRoom || 'bedroom';
+    stats = { ...stats, ...data.stats };
+    if (stats.hunger === undefined) stats.hunger = 80;
+    if (stats.maxHunger === undefined) stats.maxHunger = 100;
+    inventory = Array.isArray(data.inventory) ? data.inventory.map(i => ({ ...i })) : [];
+    storage = Array.isArray(data.storage) ? data.storage.map(i => ({ ...i })) : [];
+    cardAlbum = Array.isArray(data.cardAlbum) ? data.cardAlbum.map(i => ({ ...i })) : [];
+    skillAlbum = Array.isArray(data.skillAlbum) ? data.skillAlbum.map(i => ({ ...i })) : [];
+    removeTournamentCardsFromSkillAlbum();
+    restorePastSkillRewards();
+    recomputeSkills();
+    if (data.player) {
+      player.x = data.player.x ?? 4;
+      player.y = data.player.y ?? 4;
+      player.dir = data.player.dir || 'down';
+    }
+    player.isMoving = false;
+    player.idleTimer = 0;
+    player.walkFrame = 0;
+    updateCompletedQuests();
+    return true;
+  } catch (e) {
+    console.warn('Erro ao carregar save:', e);
+    return false;
+  }
+}
+
+function clearSave() {
+  try {
+    localStorage.removeItem(SAVE_KEY);
+  } catch (e) {}
+}
+
+function hasSave() {
+  try {
+    return !!localStorage.getItem(SAVE_KEY);
+  } catch (e) {
+    return false;
+  }
+}
+
+function getSaveInfo() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    const date = new Date(data.timestamp);
+    const timeStr = date.toLocaleString('pt-BR');
+    const questNames = {
+      'START': 'Início',
+      'TALK_MOM_FIRST': 'Falar com a Mãe',
+      'MOM_REVEALED_GAMEBOY': 'Game Boy na mesa',
+      'HAS_GAMEBOY': 'Levar Game Boy',
+      'DELIVERED_GAMEBOY': 'Game Boy entregue',
+      'TALK_MOM_DAD_QUEST': 'Bilhete pro Pai',
+      'TALKED_DAD': 'Avisar a Mãe',
+      'STREET_UNLOCKED': 'Rua liberada',
+      'FIND_LJ': 'Procurar o LJ',
+      'RETURN_TO_NEIGHBOR': 'Avisar Seu Zé',
+      'NEIGHBOR_QUEST_DONE': 'Missão do vizinho ok',
+      'TONHO_MISSION': 'Entregar salgadinho',
+      'TONHO_MISSION_DONE': 'Missão do Tonho concluída',
+      'FLOR_ASK_ZE': 'A Flor Esquecida (Falar com Seu Zé)',
+      'FLOR_GOT_INFO': 'A Flor Esquecida (Voltar ao Armando)',
+      'FLOR_BUY_GIFT': 'Comprar presente pra Dona Lena',
+      'FLOR_DELIVER': 'Entregar presente pra Dona Lena',
+      'FLOR_DONE': 'Flor entregue',
+      'DONA_LENA_QUEST': 'Cesta pra Dona Lena',
+      'DONA_LENA_DELIVER': 'Entregar cesta ao Seu Nestor',
+      'DONA_LENA_DONE': 'Missão da Dona Lena concluída',
+      'TIRE_START': 'Procurar pneu pro Pai',
+      'TIRE_NO_MARKET': 'Avisar o Pai que não tem pneu',
+      'TIRE_DONE': 'Ir à Barra Funda comprar pneu',
+      'TIRE_HAS_TIRE': 'Entregar pneu ao Pai',
+      'TIRE_COMPLETE': 'Carro consertado!'
+    };
+    return {
+      time: timeStr,
+      quest: questNames[data.questState] || data.questState,
+      items: (data.inventory || []).length
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+function setQuestState(newState) {
+  questState = newState;
+  updateCompletedQuests();
+  saveGame();
+}
+
+function updateCompletedQuests() {
+  for (const q of Object.values(QUEST_DEFS)) {
+    if (completedQuests.includes(q.id)) continue;
+    if (q.id === 'q_duelo') {
+      if (hasDuelledMaster) completedQuests.push(q.id);
+    } else if (q.id === 'q_flor') {
+      if (questState === 'FLOR_DONE' || ['DONA_LENA_QUEST','DONA_LENA_DELIVER','DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'].includes(questState) || unlockedDonaLena) {
+        completedQuests.push(q.id);
+      }
+    } else if (q.id === 'q_cesta') {
+      if (questState === 'DONA_LENA_DONE' || ['TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'].includes(questState)) {
+        completedQuests.push(q.id);
+      }
+    } else if (q.id === 'q_pneu') {
+      if (questState === 'TIRE_COMPLETE') completedQuests.push(q.id);
+    } else if (q.completedWhen.includes(questState)) {
+      completedQuests.push(q.id);
+    }
+  }
+}
+
+function getActiveQuestHint() {
+  if (questState === 'START' || questState === 'TALK_MOM_FIRST') return 'q_gameboy';
+  if (['MOM_REVEALED_GAMEBOY', 'HAS_GAMEBOY', 'DELIVERED_GAMEBOY'].includes(questState)) return 'q_gameboy';
+  if (['TALK_MOM_DAD_QUEST', 'TALKED_DAD'].includes(questState)) return 'q_bilhete';
+  if (['STREET_UNLOCKED', 'FIND_LJ', 'RETURN_TO_NEIGHBOR'].includes(questState)) return 'q_lj';
+  if (['NEIGHBOR_QUEST_DONE', 'TONHO_MISSION'].includes(questState)) return 'q_salgadinho';
+  if (questState === 'TONHO_MISSION_DONE' && !hasDuelledMaster) return 'q_duelo';
+  if (questState === 'TONHO_MISSION_DONE' && hasDuelledMaster) return 'q_flor';
+  if (['FLOR_ASK_ZE', 'FLOR_GOT_INFO', 'FLOR_BUY_GIFT', 'FLOR_DELIVER'].includes(questState)) return 'q_flor';
+  if (['DONA_LENA_QUEST', 'DONA_LENA_DELIVER'].includes(questState)) return 'q_cesta';
+  if (['TIRE_START', 'TIRE_NO_MARKET', 'TIRE_DONE', 'TIRE_HAS_TIRE'].includes(questState)) return 'q_pneu';
+  return null;
+}
+
+function openQuestLog() {
+  updateCompletedQuests();
+  document.getElementById('storage-ui').style.display = 'none';
+  document.getElementById('card-album-ui').style.display = 'none';
+  document.getElementById('skill-album-ui').style.display = 'none';
+  storageOpen = false;
+  cardAlbumOpen = false;
+  skillAlbumOpen = false;
+  document.getElementById('quest-log-ui').style.display = 'block';
+  renderQuestLog();
+}
+
+function closeQuestLog() {
+  document.getElementById('quest-log-ui').style.display = 'none';
+}
+
+function renderQuestLog() {
+  const list = document.getElementById('quest-log-list');
+  list.innerHTML = '';
+  const activeId = getActiveQuestHint();
+
+  const allQuests = Object.values(QUEST_DEFS);
+  let hasAny = false;
+
+  allQuests.forEach(q => {
+    const isCompleted = completedQuests.includes(q.id);
+    const isActive = q.id === activeId && !isCompleted;
+
+    if (!isCompleted && !isActive) return;
+    hasAny = true;
+
+    const div = document.createElement('div');
+    div.className = 'quest-entry' + (isCompleted ? ' completed' : '') + (isActive ? ' active' : '');
+    div.innerHTML = `
+      <div class="q-title">${isCompleted ? '✓ ' : '▶ '}${q.name}</div>
+      <div class="q-desc">${q.desc}</div>
+      <div class="q-status">${isCompleted ? 'Concluída' : 'Em andamento...'}</div>
+    `;
+    list.appendChild(div);
+  });
+
+  if (!hasAny) {
+    list.innerHTML = `<div style="text-align:center; color:#777; padding:20px; font-size:12px;">
+      Ainda não há missões registradas.<br>
+      Explore e fale com as pessoas...<br><br>
+      <i>O que devo fazer?</i>
+    </div>`;
+  }
+}
+
+const rooms = {
+  bedroom: {
+    type: 'indoor',
+    wallLeftColor: "#2c3e50",
+    wallRightColor: "#34495e",
+    doors: [
+      { id: 'door_to_hall', x: 0, y: 3.5, targetRoom: 'hallway', targetX: 6, targetY: 3.5, label: 'Sair do Quarto [E]' }
+    ],
+    objects: [
+      { type: 'bed', x: 0.1, y: 0.1, w: 2, h: 2.8, name: 'Sua Cama', desc: 'Sua cama para descansar.' },
+      { type: 'desk', x: 1, y: 5.5, w: 2, h: 1.2, name: 'Escrivaninha', desc: 'Seu computador de casa.' },
+      { type: 'wardrobe', x: 5.5, y: 0.1, w: 1.8, h: 1, name: 'Guarda-Roupa / Baú', desc: 'Baú com 8 slots. Pressione [E] ou [B] para abrir.' },
+      { type: 'window', x: 6.2, y: 0.05, w: 1.2, h: 0.15, name: 'Janela do Quarto', desc: 'Dá pra ver a rua daqui.' },
+      { type: 'rug', x: 2.5, y: 3, w: 2, h: 1.5, name: 'Tapete', desc: 'Tapete macio do quarto.' }
+    ]
+  },
+  hallway: {
+    type: 'indoor',
+    wallLeftColor: "#4a3c5a",
+    wallRightColor: "#5c4a6e",
+    doors: [
+      { id: 'door_to_bed', x: 7, y: 3.5, targetRoom: 'bedroom', targetX: 1.5, targetY: 3.5, label: 'Voltar ao Quarto [E]' },
+      { id: 'door_to_living', x: 3.5, y: 0, targetRoom: 'livingroom', targetX: 3.5, targetY: 5.8, label: 'Ir para a Sala [E]' }
+    ],
+    npcs: [
+      { id: 'brother', x: 3, y: 3, w: 0.8, h: 0.8, color: '#e67e22', name: 'Irmão', targetX: 3, targetY: 3, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'plant', x: 0.2, y: 0.2, w: 0.8, h: 0.8, name: 'Planta', desc: 'Vaso decorativo.' },
+      { type: 'tv', x: 5.5, y: 1, w: 1.4, h: 0.6, name: 'Televisão', desc: 'O Irmão passa horas aqui.' },
+      { type: 'shelf', x: 0.3, y: 5.5, w: 1.2, h: 0.8, name: 'Estante', desc: 'Revistas e jogos antigos.' }
+    ]
+  },
+  livingroom: {
+    type: 'indoor',
+    wallLeftColor: "#27ae60",
+    wallRightColor: "#2ecc71",
+    doors: [
+      { id: 'door_to_hall2', x: 3.5, y: 6.5, targetRoom: 'hallway', targetX: 3.5, targetY: 1.2, label: 'Voltar ao Corredor [E]' },
+      { id: 'door_to_garage', x: 0.5,  y: 3.5, targetRoom: 'garage', targetX: 5.5, targetY: 3.5, label: 'Oficina/Garagem [E]' }
+    ],
+    npcs: [
+      { id: 'mother', x: 4, y: 3, w: 0.8, h: 0.8, color: '#9b59b6', name: 'Mãe', targetX: 4, targetY: 3, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'sofa', x: 1, y: 2, w: 2.5, h: 1.2, name: 'Sofá', desc: 'Confortável.' },
+      { type: 'table', x: 5, y: 2, w: 1.5, h: 1.5, name: 'Mesa Verde', desc: 'Mesa de centro.' },
+      { type: 'fridge', x: 6.2, y: 5.5, w: 1, h: 1, name: 'Geladeira', desc: 'Sempre tem alguma coisa pra beber.' },
+      { type: 'stove', x: 0.3, y: 5.5, w: 1.2, h: 1, name: 'Fogão', desc: 'Onde a Mãe prepara o almoço.' },
+      { type: 'window', x: 4.5, y: 0.05, w: 1.8, h: 0.15, name: 'Janela da Sala', desc: 'Entra uma luz gostosa de manhã.' },
+      { type: 'plant', x: 0.2, y: 0.3, w: 0.7, h: 0.7, name: 'Planta da Sala', desc: 'A Mãe cuida bem dela.' }
+    ]
+  },
+  garage: {
+    type: 'indoor',
+    wallLeftColor: "#7f8c8d",
+    wallRightColor: "#95a5a6",
+    doors: [
+      { id: 'door_to_living2', x: 7, y: 3.5, targetRoom: 'livingroom', targetX: 1.2, targetY: 3.5, label: 'Ir para a Sala [E]' },
+      { id: 'door_to_street', x: 3.5, y: 7, targetRoom: 'street', targetX: 3.5, targetY: 1.8, label: 'Sair para a Rua [E]' }
+    ],
+    npcs: [
+      { id: 'father', x: 3, y: 2, w: 0.8, h: 0.8, color: '#2980b9', name: 'Pai', targetX: 3, targetY: 2, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'shelf', x: 1, y: 0.2, w: 2, h: 1, name: 'Prateleira de Ferramentas', desc: 'Caixas de ferramentas.' },
+      { type: 'old_car', x: 4.5, y: 4.5, w: 2.2, h: 1.4, name: 'Carro Velho', desc: 'Um carro antigo parado na garagem. Precisa de um pneu novo.' }
+    ]
+  },
+  street: {
+    type: 'outdoor',
+    displayName: 'Sua Rua',
+    doors: [
+      { id: 'door_to_garage_back', x: 3.5, y: 0.5, targetRoom: 'garage', targetX: 3.5, targetY: 6, label: 'Entrar na sua Casa [E]' },
+      { id: 'door_to_bairro2', x: 7, y: 3.5, targetRoom: 'street_bairro2', targetX: 1.2, targetY: 3.5, label: 'Ir para a Praça Central [E]' },
+      { id: 'door_to_vila_ze', x: 0.3, y: 5.6, label: 'Rua da Vila do Seu Zé [E]', locked: true, lockMsg: '🚧 A Rua da Vila do Seu Zé ainda está bloqueada. Parece que há casas e histórias novas por ali...' },
+      { id: 'door_to_rua_sul', x: 3.5, y: 7.5, label: 'Descer para a Rua do Sul [E]', locked: true, lockMsg: '🚧 A passagem para a Rua do Sul ainda está fechada. Talvez alguém do bairro saiba quando ela vai abrir.' }
+    ],
+    npcs: [
+      { id: 'neighbor', x: 6, y: 2, w: 0.8, h: 0.8, color: '#e74c3c', name: 'Vizinho Seu Zé', targetX: 6, targetY: 2, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 },
+      { id: 'lj', x: 1.5, y: 6.5, w: 0.8, h: 0.8, color: '#1abc9c', name: 'LJ (Filho do Vizinho)', targetX: 1.5, targetY: 6.5, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'house_main', x: 2, y: 0, w: 3, h: 0.8, name: 'Sua Casa', desc: 'Entrada da sua residencia.' },
+      { type: 'house_neighbor', x: 0, y: 1, w: 1, h: 3, name: 'Casa do Seu Zé', desc: 'Residencia do vizinho.' },
+      { type: 'hydrant', x: 2, y: 2, w: 0.8, h: 0.8, name: 'Hidrante', desc: 'Bebedouro da rua.' },
+      { type: 'bench', x: 5, y: 5, w: 2, h: 0.8, name: 'Banco da Praça', desc: 'Bom para descansar.' }
+    ]
+  },
+  street_bairro2: {
+    type: 'outdoor',
+    displayName: 'Praça Central',
+    doors: [
+      { id: 'door_to_bairro1', x: 0.3, y: 3.5, targetRoom: 'street', targetX: 6.5, targetY: 3.5, label: 'Voltar para sua Rua [E]' },
+      { id: 'door_to_dona_lena', x: 3.5, y: 0.3, targetRoom: 'bairro_dona_lena', targetX: 3.5, targetY: 5.8, label: 'Bairro Dona Lena [E]', locked: true, lockMsg: '🚧 Rua para o Bairro Dona Lena está bloqueada. Fale com Seu Armando no Jardim das Flores.' },
+      { id: 'door_to_barra_funda', x: 7.5, y: 3.5, targetRoom: 'bairro_barra_funda', targetX: 1.2, targetY: 3.5, label: 'Bairro Barra Funda [E]', locked: true, lockMsg: '🚧 Acesso ao Bairro Barra Funda ainda não foi liberado. Fale com seu Pai na garagem.' },
+      { id: 'door_to_silva_pereira', x: 3.5, y: 7.5, targetRoom: 'bairro_silva_pereira', targetX: 3.5, targetY: 1.5, label: 'Bairro Silva Pereira [E]', locked: true, lockMsg: '🚧 A rua do Bairro Silva Pereira está interditada.' },
+      { id: 'door_to_jardim', x: 7.0, y: 6.5, targetRoom: 'bairro_jardim_flores', targetX: 0.8, targetY: 3.5, label: 'Bairro Jardim das Flores [E]', locked: false },
+      { id: 'door_to_mercadinho', x: 6.0, y: 2.0, targetRoom: 'mercadinho_tonho', targetX: 3.5, targetY: 5.8, label: 'Entrar no Mercadinho [E]' }
+    ],
+    npcs: [
+      { id: 'tournament_guy', x: 4.0, y: 4.0, w: 0.8, h: 0.8, color: '#d35400', name: 'Mestre do Torneio', targetX: 4.0, targetY: 4.0, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'store_tonho', x: 5.2, y: 0.3, w: 2.3, h: 1.8, name: 'Mercadinho do Seu Tonho', desc: 'O mercado local.' },
+      { type: 'tournament_booth', x: 2.5, y: 3.2, w: 2, h: 1.5, name: 'Arena de Torneio de Cartas', desc: 'Local do campeonato!' }
+    ]
+  },
+  mercadinho_tonho: {
+    type: 'indoor',
+    displayName: 'Mercadinho do Seu Tonho',
+    wallLeftColor: "#b2bec3",
+    wallRightColor: "#dfe6e9",
+    doors: [
+      { id: 'door_to_bairro2_out', x: 3.5, y: 7, targetRoom: 'street_bairro2', targetX: 5.5, targetY: 3.5, label: 'Sair do Mercadinho [E]' }
+    ],
+    npcs: [
+      { id: 'tonho', x: 3.5, y: 2, w: 0.8, h: 0.8, color: '#f1c40f', name: 'Seu Tonho (Mercante)', targetX: 3.5, targetY: 2, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'shelf', x: 1, y: 1, w: 1.5, h: 1, name: 'Prateleiras de Produtos', desc: 'Mercadorias variadas.' },
+      { type: 'shelf', x: 5.5, y: 1, w: 1.5, h: 1, name: 'Geladeira de Bebidas', desc: 'Refrigerantes e salgadinhos.' }
+    ]
+  },
+
+  bairro_dona_lena: {
+    type: 'outdoor',
+    displayName: 'Bairro Dona Lena',
+    doors: [
+      { id: 'door_back_dona', x: 3.5, y: 7, targetRoom: 'street_bairro2', targetX: 3.5, targetY: 1.5, label: 'Voltar para a Praça [E]' }
+    ],
+    npcs: [
+      { id: 'dona_lena', x: 4, y: 3, w: 0.8, h: 0.8, color: '#e91e63', name: 'Dona Lena', targetX: 4, targetY: 3, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'bench', x: 2, y: 2, w: 2, h: 0.8, name: 'Banco da Dona Lena', desc: 'Um banco antigo da praça do bairro.' }
+    ]
+  },
+
+  bairro_barra_funda: {
+    type: 'outdoor',
+    displayName: 'Bairro Barra Funda',
+    doors: [
+      { id: 'door_back_barra', x: 0.5, y: 3.5, targetRoom: 'street_bairro2', targetX: 6.5, targetY: 3.5, label: 'Voltar para a Praça [E]' },
+      { id: 'door_to_loja_auto', x: 6.0, y: 2.2, targetRoom: 'loja_auto', targetX: 3.5, targetY: 5.8, label: 'Entrar na Loja de Autopeças [E]' }
+    ],
+    npcs: [],
+    objects: [
+      { type: 'store_auto', x: 4.8, y: 0.4, w: 2.5, h: 1.8, name: 'Loja de Autopeças do Seu Moura', desc: 'Peças, pneus e ferramentas automotivas.' },
+      { type: 'hydrant', x: 2, y: 5.5, w: 0.8, h: 0.8, name: 'Hidrante', desc: 'Hidrante do Bairro Barra Funda.' },
+      { type: 'bench', x: 1.5, y: 2, w: 2, h: 0.8, name: 'Banco da Barra', desc: 'Banco perto da loja.' }
+    ]
+  },
+
+  loja_auto: {
+    type: 'indoor',
+    displayName: 'Loja de Autopeças do Seu Moura',
+    wallLeftColor: "#5d6d7e",
+    wallRightColor: "#7f8c8d",
+    doors: [
+      { id: 'door_loja_out', x: 3.5, y: 7, targetRoom: 'bairro_barra_funda', targetX: 5.8, targetY: 3.5, label: 'Sair da Loja [E]' }
+    ],
+    npcs: [
+      { id: 'moura', x: 3.5, y: 2, w: 0.8, h: 0.8, color: '#e67e22', name: 'Seu Moura (Autopeças)', targetX: 3.5, targetY: 2, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'shelf', x: 0.5, y: 0.5, w: 1.5, h: 1.2, name: 'Prateleira de Peças', desc: 'Parafusos, filtros e coisas de motor.' },
+      { type: 'shelf', x: 5.5, y: 0.5, w: 1.5, h: 1.2, name: 'Prateleira de Pneus', desc: 'Pneus de vários tamanhos.' },
+      { type: 'tire_stack', x: 5.5, y: 4, w: 1.2, h: 1.2, name: 'Pilha de Pneus', desc: 'Cheira a borracha nova.' },
+      { type: 'counter', x: 2.5, y: 3.5, w: 2, h: 0.8, name: 'Balcão', desc: 'Balcão de atendimento.' }
+    ]
+  },
+
+  bairro_silva_pereira: {
+    type: 'outdoor',
+    displayName: 'Bairro Silva Pereira',
+    doors: [
+      { id: 'door_back_silva', x: 3.5, y: 0.3, targetRoom: 'street_bairro2', targetX: 3.5, targetY: 6.2, label: 'Voltar para a Praça [E]' },
+      { id: 'door_to_quitanda', x: 5.8, y: 2.6, targetRoom: 'quitanda_omar', targetX: 3.5, targetY: 5.5, label: 'Entrar na Quitanda [E]' }
+    ],
+    npcs: [
+      { id: 'nestor', x: 2.5, y: 4.5, w: 0.8, h: 0.8, color: '#16a085', name: 'Seu Nestor', targetX: 2.5, targetY: 4.5, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'bench', x: 1, y: 5.5, w: 2, h: 0.8, name: 'Banco Silva Pereira', desc: 'Banco da praça do bairro.' },
+      { type: 'store_auto', x: 4.8, y: 0.5, w: 2.2, h: 1.6, name: 'Quitanda do Seu Omar', desc: 'Frutas, verduras e legumes fresquinhos, direto da feira.' }
+    ]
+  },
+
+  quitanda_omar: {
+    type: 'indoor',
+    displayName: 'Quitanda do Seu Omar',
+    wallLeftColor: "#1e8449",
+    wallRightColor: "#27ae60",
+    doors: [
+      { id: 'door_quitanda_out', x: 3.5, y: 7, targetRoom: 'bairro_silva_pereira', targetX: 5.8, targetY: 3.6, label: 'Sair da Quitanda [E]' }
+    ],
+    npcs: [
+      { id: 'omar', x: 3.5, y: 2, w: 0.8, h: 0.8, color: '#f39c12', name: 'Seu Omar (Quitanda)', targetX: 3.5, targetY: 2, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'shelf', x: 0.5, y: 0.5, w: 1.5, h: 1.2, name: 'Caixotes de Frutas', desc: 'Frutas fresquinhas, direto da feira da manhã.' },
+      { type: 'shelf', x: 5.5, y: 0.5, w: 1.5, h: 1.2, name: 'Prateleira de Verduras', desc: 'Verduras e legumes do dia.' },
+      { type: 'counter', x: 2.5, y: 4, w: 2, h: 0.8, name: 'Balcão da Quitanda', desc: 'Balcão de atendimento do Seu Omar.' }
+    ]
+  },
+
+  bairro_jardim_flores: {
+    type: 'outdoor',
+    displayName: 'Bairro Jardim das Flores',
+    doors: [
+      { id: 'door_back_jardim', x: 0.5, y: 3.5, targetRoom: 'street_bairro2', targetX: 6.2, targetY: 5.8, label: 'Voltar para a Praça [E]' }
+    ],
+    npcs: [
+      { id: 'armando', x: 4, y: 3.5, w: 0.8, h: 0.8, color: '#27ae60', name: 'Seu Armando', targetX: 4, targetY: 3.5, moveTimer: 0, dir: 'down', isMoving: false, walkFrame: 0 }
+    ],
+    objects: [
+      { type: 'plant', x: 2, y: 2, w: 0.8, h: 0.8, name: 'Flor do Jardim', desc: 'Flores bonitas do bairro.' },
+      { type: 'plant', x: 5, y: 5, w: 0.8, h: 0.8, name: 'Flor do Jardim', desc: 'Mais flores.' },
+      { type: 'bench', x: 3.5, y: 5.5, w: 2, h: 0.8, name: 'Banco Florido', desc: 'Um banco cercado de flores.' }
+    ]
+  }
+};
+
+document.addEventListener("keydown", e => {
+  initAudio();
+  const k = e.key.toLowerCase();
+  if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
+  keys[k] = true;
+
+  if (k === 'escape' || k === 'esc') {
+    closeStorageUI();
+    closeCardAlbum();
+    closeSkillAlbum();
+    closeQuestLog();
+    closeShop();
+    return;
+  }
+  if (k === 'b') {
+    if (storageOpen) closeStorageUI();
+    else if (currentRoom === 'bedroom') openStorageUI();
+    else showToast('O baú fica no armário do seu quarto!');
+    return;
+  }
+  if (k === 'c') {
+    if (cardAlbumOpen) closeCardAlbum();
+    else openCardAlbum();
+    return;
+  }
+  if (k === 'j') {
+    const log = document.getElementById('quest-log-ui');
+    if (log.style.display === 'block') closeQuestLog();
+    else openQuestLog();
+    return;
+  }
+  if (k === 'k') {
+    if (skillAlbumOpen) closeSkillAlbum();
+    else openSkillAlbum();
+    return;
+  }
+
+  if (k === 'e' && !e.repeat) checkInteraction();
+  
+  if (e.key >= '1' && e.key <= '9') {
+    const idx = parseInt(e.key) - 1;
+    if (storageOpen) {
+      storeInStorage(idx);
+    } else {
+      useItem(idx);
+    }
+  }
+});
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+function drawItemPixelArt(cCtx, type, size = 64) {
+  cCtx.clearRect(0, 0, size, size);
+  cCtx.imageRendering = 'pixelated';
+
+  if (type === 'soda') {
+    cCtx.fillStyle = '#bdc3c7'; cCtx.fillRect(20, 8, 24, 6);
+    cCtx.fillStyle = '#ecf0f1'; cCtx.fillRect(22, 10, 20, 2);
+    cCtx.fillStyle = '#7f8c8d'; cCtx.fillRect(30, 6, 6, 4);
+    cCtx.fillStyle = '#e74c3c'; cCtx.fillRect(18, 14, 28, 40);
+    cCtx.fillStyle = '#c0392b'; cCtx.fillRect(40, 14, 6, 40);
+    cCtx.fillStyle = '#ffffff';
+    cCtx.beginPath(); cCtx.moveTo(18, 28); cCtx.lineTo(46, 22); cCtx.lineTo(46, 30); cCtx.lineTo(18, 36); cCtx.closePath(); cCtx.fill();
+    cCtx.fillStyle = 'rgba(255, 255, 255, 0.4)'; cCtx.fillRect(22, 14, 4, 40);
+    cCtx.fillStyle = '#7f8c8d'; cCtx.fillRect(20, 54, 24, 4);
+  } else if (type === 'candy') {
+    cCtx.fillStyle = '#f1c40f'; cCtx.fillRect(8, 24, 12, 16); cCtx.fillRect(44, 24, 12, 16);
+    cCtx.fillStyle = '#e67e22'; cCtx.fillRect(18, 18, 28, 28);
+    cCtx.fillStyle = '#e74c3c'; cCtx.fillRect(24, 18, 6, 28); cCtx.fillRect(34, 18, 6, 28);
+  } else if (type === 'snack') {
+    cCtx.fillStyle = '#e67e22'; cCtx.fillRect(16, 12, 32, 40);
+    cCtx.fillStyle = '#f1c40f'; cCtx.fillRect(20, 16, 24, 12);
+    cCtx.fillStyle = '#d35400'; cCtx.fillRect(22, 34, 20, 12);
+  } else if (type === 'card') {
+    cCtx.fillStyle = '#1a237e'; cCtx.fillRect(8, 6, 48, 52);
+    cCtx.fillStyle = '#3949ab'; cCtx.fillRect(12, 10, 40, 44);
+    cCtx.fillStyle = '#f1c40f'; cCtx.fillRect(18, 16, 28, 32);
+    cCtx.fillStyle = '#1a237e';
+    cCtx.beginPath(); cCtx.moveTo(32, 20); cCtx.lineTo(40, 32); cCtx.lineTo(32, 44); cCtx.lineTo(24, 32); cCtx.closePath(); cCtx.fill();
+    cCtx.fillStyle = '#fff'; cCtx.font = 'bold 8px monospace'; cCtx.textAlign = 'center'; cCtx.fillText('?', 32, 36);
+  } else if (type === 'letter' || type === 'envelope') {
+    cCtx.fillStyle = '#ecf0f1'; cCtx.fillRect(12, 16, 40, 32);
+    cCtx.fillStyle = '#bdc3c7'; cCtx.fillRect(16, 22, 32, 2); cCtx.fillRect(16, 28, 24, 2); cCtx.fillRect(16, 34, 28, 2);
+    cCtx.fillStyle = type === 'envelope' ? '#e91e63' : '#e74c3c'; cCtx.fillRect(40, 36, 8, 8);
+    if (type === 'envelope') {
+      cCtx.fillStyle = '#e91e63'; cCtx.beginPath(); cCtx.arc(32, 28, 4, 0, Math.PI * 2); cCtx.fill();
+      cCtx.fillStyle = '#f1c40f'; cCtx.fillRect(30, 26, 4, 4);
+    }
+  } else if (type === 'gift') {
+    cCtx.fillStyle = '#9b59b6'; cCtx.fillRect(14, 18, 36, 30);
+    cCtx.fillStyle = '#f1c40f'; cCtx.fillRect(28, 14, 8, 38); cCtx.fillRect(14, 30, 36, 6);
+    cCtx.fillStyle = '#e74c3c'; cCtx.fillRect(30, 12, 4, 6);
+  } else if (type === 'tire') {
+    cCtx.fillStyle = '#1a1a1a'; cCtx.beginPath(); cCtx.arc(32, 32, 22, 0, Math.PI * 2); cCtx.fill();
+    cCtx.fillStyle = '#2c3e50'; cCtx.beginPath(); cCtx.arc(32, 32, 12, 0, Math.PI * 2); cCtx.fill();
+    cCtx.fillStyle = '#7f8c8d'; cCtx.beginPath(); cCtx.arc(32, 32, 5, 0, Math.PI * 2); cCtx.fill();
+  } else if (type === 'cesta') {
+    cCtx.fillStyle = '#a0522d'; cCtx.fillRect(14, 32, 36, 18);
+    cCtx.strokeStyle = '#6b3a1f'; cCtx.lineWidth = 2; cCtx.strokeRect(14, 32, 36, 18);
+    cCtx.beginPath(); cCtx.moveTo(18, 32); cCtx.quadraticCurveTo(32, 12, 46, 32); cCtx.stroke();
+    cCtx.lineWidth = 1;
+    cCtx.fillStyle = '#e74c3c'; cCtx.beginPath(); cCtx.arc(22, 27, 5, 0, Math.PI * 2); cCtx.fill();
+    cCtx.fillStyle = '#f1c40f'; cCtx.beginPath(); cCtx.arc(32, 24, 5, 0, Math.PI * 2); cCtx.fill();
+    cCtx.fillStyle = '#27ae60'; cCtx.beginPath(); cCtx.arc(42, 27, 5, 0, Math.PI * 2); cCtx.fill();
+  } else if (type === 'fruit') {
+    cCtx.fillStyle = '#e74c3c'; cCtx.beginPath(); cCtx.arc(32, 34, 16, 0, Math.PI * 2); cCtx.fill();
+    cCtx.fillStyle = '#27ae60'; cCtx.fillRect(31, 12, 4, 10); cCtx.fillRect(35, 12, 8, 4);
+    cCtx.fillStyle = 'rgba(255,255,255,0.45)'; cCtx.beginPath(); cCtx.arc(26, 29, 4, 0, Math.PI * 2); cCtx.fill();
+  }
+}
+
+function addItem(itemName, type, extra = null) {
+  const item = { name: itemName, type: type };
+  if (extra) Object.assign(item, extra);
+  inventory.push(item);
+  updateInventoryUI();
+  playRewardSound();
+  showToast(`🎒 Você recebeu: ${itemName}!`);
+  saveGame();
+}
+
+const CARD_DB = {
+  'card01': { name: 'Guardião do Bairro', type: 'card', atk: 1400, def: 1200, desc: 'O espírito protetor das ruas.' },
+  'card02': { name: 'Mercante do Salgadinho', type: 'card', atk: 1100, def: 1600, desc: 'Mestre dos pacotes crocantes.' }
+};
+
+function addCard(cardId) {
+  const data = CARD_DB[cardId];
+  if (!data) return;
+  if (inventory.some(i => i.type === 'card' && i.name === data.name)) return;
+  if (cardAlbum.some(i => i.name === data.name)) return;
+
+  const cardObj = { name: data.name, type: 'card', atk: data.atk, def: data.def, desc: data.desc, cardId };
+  addItem(data.name, 'card', { atk: data.atk, def: data.def, desc: data.desc, cardId });
+  cardAlbum.push({ ...cardObj });
+  saveGame();
+}
+
+function useItem(index) {
+  if (index >= 0 && index < inventory.length) {
+    const item = inventory[index];
+    if (item.type === 'candy') {
+      stats.hp = Math.min(stats.maxHp, stats.hp + 20);
+      stats.hunger = Math.min(stats.maxHunger, (stats.hunger || 0) + 35);
+      showDialog(`🍬 Você comeu a ${item.name}! +20 Vida e +35 Fome!`);
+      inventory.splice(index, 1);
+      saveGame();
+    } else if (item.type === 'soda') {
+      stats.thirst = Math.min(stats.maxThirst, stats.thirst + 40);
+      showDialog(`🥤 Você bebeu o ${item.name}! +40 de Sede!`);
+      inventory.splice(index, 1);
+      saveGame();
+    } else if (item.type === 'snack') {
+      if (questState === 'TONHO_MISSION') {
+        showDialog(`🍿 ${item.name}: É a entrega pro LJ! Melhor não comer agora.`);
+      } else {
+        stats.hunger = Math.min(stats.maxHunger, (stats.hunger || 0) + 45);
+        showDialog(`🍿 Você comeu o ${item.name}! +45 de Fome!`);
+        inventory.splice(index, 1);
+        saveGame();
+      }
+    } else if (item.type === 'letter') {
+      showDialog(`✉️ ${item.name}: 'Querido marido, o almoço está pronto, venha logo da garagem!'`);
+    } else if (item.type === 'envelope') {
+      showDialog(`🌸 ${item.name}: Um envelope antigo com uma flor seca dentro.`);
+    } else if (item.type === 'gift') {
+      showDialog(`🎁 ${item.name}: Uma Caixa de Doces para a Dona Lena.`);
+    } else if (item.type === 'tire') {
+      showDialog(`🛞 ${item.name}: Pneu Novo comprado no Seu Moura. Leve para seu Pai na garagem.`);
+    } else if (item.type === 'cesta') {
+      showDialog(`🧺 ${item.name}: Cesta de Frutas da Dona Lena para o Seu Nestor.`);
+    } else if (item.type === 'fruit') {
+      stats.hunger = Math.min(stats.maxHunger, (stats.hunger || 0) + 25);
+      showDialog(`🍎 Você comeu ${item.name}! +25 de Fome!`);
+      inventory.splice(index, 1);
+      saveGame();
+    } else if (item.type === 'card') {
+      showDialog(`🃏 ${item.name}\nATK ${item.atk} / DEF ${item.def}\n${item.desc || ''}`);
+    }
+    updateInventoryUI();
+    updateHUD();
+  }
+}
+
+function updateInventoryUI() {
+  const list = document.getElementById("item-list");
+  if (inventory.length === 0) {
+    list.innerHTML = `<div class="empty-album">Nenhum item recolhido</div>`;
+    return;
+  }
+
+  list.innerHTML = "";
+  inventory.forEach((item, idx) => {
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.onclick = () => {
+      if (storageOpen) storeInStorage(idx);
+      else useItem(idx);
+    };
+
+    const badge = document.createElement("span");
+    badge.className = "item-badge";
+    badge.innerText = `#${idx + 1}`;
+
+    const iconCanvas = document.createElement("canvas");
+    iconCanvas.className = "item-canvas";
+    iconCanvas.width = 64;
+    iconCanvas.height = 64;
+
+    const cCtx = iconCanvas.getContext("2d");
+    drawItemPixelArt(cCtx, item.type, 64);
+
+    const label = document.createElement("span");
+    label.className = "item-label";
+    label.innerText = item.name;
+
+    card.appendChild(badge);
+    card.appendChild(iconCanvas);
+    card.appendChild(label);
+    list.appendChild(card);
+  });
+}
+
+function updateHUD() {
+  document.getElementById("hp-txt").innerText = Math.round(stats.hp);
+  document.getElementById("hp-bar").style.width = `${(stats.hp / stats.maxHp) * 100}%`;
+
+  document.getElementById("stamina-txt").innerText = Math.round(stats.stamina);
+  document.getElementById("stamina-bar").style.width = `${(stats.stamina / stats.maxStamina) * 100}%`;
+
+  document.getElementById("thirst-txt").innerText = Math.round(stats.thirst);
+  document.getElementById("thirst-bar").style.width = `${(stats.thirst / stats.maxThirst) * 100}%`;
+
+  if (stats.hunger === undefined) stats.hunger = 80;
+  if (stats.maxHunger === undefined) stats.maxHunger = 100;
+  const hungerTxt = document.getElementById("hunger-txt");
+  const hungerBar = document.getElementById("hunger-bar");
+  if (hungerTxt) hungerTxt.innerText = Math.round(stats.hunger);
+  if (hungerBar) hungerBar.style.width = `${(stats.hunger / stats.maxHunger) * 100}%`;
+
+  const coinsEl = document.getElementById("coins-txt");
+  if (coinsEl) coinsEl.innerText = coins;
+}
+
+function toIso(gx, gy) {
+  return {
+    x: ORIGIN_X + (gx - gy) * (TILE_W / 2),
+    y: ORIGIN_Y + (gx + gy) * (TILE_H / 2)
+  };
+}
+
+function showDialog(text) {
+  dialog.innerText = text;
+  dialog.style.display = "block";
+  clearTimeout(window.dTimer);
+  window.dTimer = setTimeout(() => dialog.style.display = "none", 4800);
+}
+
+function showToast(text) {
+  infoToast.innerText = text;
+  infoToast.style.display = "block";
+  clearTimeout(window.tTimer);
+  window.tTimer = setTimeout(() => infoToast.style.display = "none", 2200);
+}
+
+// --- BAÚ ---
+let storageOpen = false;
+let cardAlbumOpen = false;
+
+function openStorageUI() {
+  storageOpen = true;
+  cardAlbumOpen = false;
+  skillAlbumOpen = false;
+  document.getElementById('card-album-ui').style.display = 'none';
+  document.getElementById('skill-album-ui').style.display = 'none';
+  document.getElementById('storage-ui').style.display = 'block';
+  renderStorageUI();
+  showToast('Baú aberto');
+}
+
+function closeStorageUI() {
+  storageOpen = false;
+  document.getElementById('storage-ui').style.display = 'none';
+}
+
+function renderStorageUI() {
+  const list = document.getElementById('storage-list');
+  list.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'storage-slot' + (storage[i] ? '' : ' empty');
+    const num = document.createElement('span');
+    num.className = 'slot-num';
+    num.innerText = i + 1;
+    slot.appendChild(num);
+
+    if (storage[i]) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 40; canvas.height = 40;
+      canvas.style.imageRendering = 'pixelated';
+      drawItemPixelArt(canvas.getContext('2d'), storage[i].type, 40);
+      slot.appendChild(canvas);
+      const label = document.createElement('div');
+      label.style.fontSize = '8px';
+      label.style.marginTop = '2px';
+      label.innerText = storage[i].name.substring(0, 12);
+      slot.appendChild(label);
+      slot.onclick = () => takeFromStorage(i);
+    } else {
+      slot.innerHTML += '<div style="font-size:11px;color:#444;">vazio</div>';
+    }
+    list.appendChild(slot);
+  }
+}
+
+function storeInStorage(invIndex) {
+  if (storage.length >= 8) { showToast('Baú cheio! (máx 8 itens)'); return; }
+  if (invIndex < 0 || invIndex >= inventory.length) return;
+  const item = inventory.splice(invIndex, 1)[0];
+  storage.push(item);
+  updateInventoryUI();
+  renderStorageUI();
+  saveGame();
+  showToast(`Guardou: ${item.name}`);
+}
+
+function takeFromStorage(slotIndex) {
+  if (!storage[slotIndex]) return;
+  const item = storage.splice(slotIndex, 1)[0];
+  inventory.push(item);
+  updateInventoryUI();
+  renderStorageUI();
+  saveGame();
+  showToast(`Pegou: ${item.name}`);
+}
+
+// --- ÁLBUM DE CARTAS ---
+function openCardAlbum() {
+  cardAlbumOpen = true;
+  storageOpen = false;
+  skillAlbumOpen = false;
+  document.getElementById('storage-ui').style.display = 'none';
+  document.getElementById('skill-album-ui').style.display = 'none';
+  document.getElementById('card-album-ui').style.display = 'block';
+  renderCardAlbum();
+}
+
+function closeCardAlbum() {
+  cardAlbumOpen = false;
+  document.getElementById('card-album-ui').style.display = 'none';
+}
+
+function renderCardAlbum() {
+  const list = document.getElementById('card-album-list');
+  list.innerHTML = '';
+  if (cardAlbum.length === 0) {
+    list.innerHTML = '<div style="grid-column:span 4; text-align:center; color:#777; padding:20px;">Nenhuma carta ainda.</div>';
+    return;
+  }
+  cardAlbum.forEach(card => {
+    const slot = document.createElement('div');
+    slot.className = 'storage-slot';
+    slot.style.height = '90px';
+    const canvas = document.createElement('canvas');
+    canvas.width = 48; canvas.height = 48;
+    canvas.style.imageRendering = 'pixelated';
+    drawItemPixelArt(canvas.getContext('2d'), 'card', 48);
+    slot.appendChild(canvas);
+    const label = document.createElement('div');
+    label.style.fontSize = '8px';
+    label.style.marginTop = '3px';
+    label.innerHTML = `${card.name}<br><span style="color:#f1c40f">ATK ${card.atk}</span> / <span style="color:#3498db">DEF ${card.def}</span>`;
+    slot.appendChild(label);
+    slot.onclick = () => showDialog(`🃏 ${card.name}\nATK ${card.atk} / DEF ${card.def}\n${card.desc || ''}`);
+    list.appendChild(slot);
+  });
+}
+
+// --- ÁLBUM DE FIGURINHAS ---
+function openSkillAlbum() {
+  skillAlbumOpen = true;
+  cardAlbumOpen = false;
+  storageOpen = false;
+  document.getElementById('storage-ui').style.display = 'none';
+  document.getElementById('card-album-ui').style.display = 'none';
+  document.getElementById('quest-log-ui').style.display = 'none';
+  document.getElementById('skill-album-ui').style.display = 'block';
+  renderSkillAlbum();
+}
+
+function closeSkillAlbum() {
+  skillAlbumOpen = false;
+  document.getElementById('skill-album-ui').style.display = 'none';
+}
+
+// --- COMÉRCIO ---
+let shopOpen = false;
+let currentShopId = null;
+const SHOP_CATALOGS = {
+  tonho: {
+    title: '🛒 Mercadinho do Seu Tonho',
+    products: [
+      { name: 'Refrigerante', type: 'soda', price: 4, desc: '+40 de sede' },
+      { name: 'Bala', type: 'candy', price: 3, desc: '+20 vida e +35 fome' },
+      { name: 'Salgadinho', type: 'snack', price: 5, desc: '+45 fome' },
+      { name: 'Caixa de Doces', type: 'gift', price: 10, desc: 'Produto de presente' },
+      { name: 'Cesta de Frutas', type: 'cesta', price: 8, desc: 'Produto especial' }
+    ]
+  },
+  omar: {
+    title: '🍎 Quitanda do Seu Omar',
+    products: [
+      { name: 'Fruta Fresca', type: 'fruit', price: 3, desc: '+25 fome' },
+      { name: 'Cesta de Frutas', type: 'cesta', price: 8, desc: 'Frutas selecionadas' },
+      { name: 'Refrigerante', type: 'soda', price: 4, desc: '+40 de sede' }
+    ]
+  },
+  moura: {
+    title: '🛞 Autopeças do Seu Moura',
+    products: [
+      { name: 'Pneu Novo', type: 'tire', price: 8, desc: 'Pneu para o carro velho' }
+    ]
+  }
+};
+
+function closeShop() {
+  shopOpen = false;
+  currentShopId = null;
+  document.getElementById('shop-ui').style.display = 'none';
+}
+
+function openShop(shopId) {
+  const shop = SHOP_CATALOGS[shopId];
+  if (!shop) return;
+  shopOpen = true;
+  currentShopId = shopId;
+  storageOpen = false;
+  cardAlbumOpen = false;
+  skillAlbumOpen = false;
+  document.getElementById('storage-ui').style.display = 'none';
+  document.getElementById('card-album-ui').style.display = 'none';
+  document.getElementById('skill-album-ui').style.display = 'none';
+  document.getElementById('quest-log-ui').style.display = 'none';
+  document.getElementById('shop-ui').style.display = 'block';
+  renderShop();
+}
+
+function renderShop() {
+  const shop = SHOP_CATALOGS[currentShopId];
+  if (!shop) return;
+  document.getElementById('shop-title').innerText = shop.title;
+  document.getElementById('shop-coins').innerText = coins;
+  const list = document.getElementById('shop-list');
+  list.innerHTML = '';
+  shop.products.forEach((product, index) => {
+    const row = document.createElement('div');
+    row.className = 'shop-item';
+    const icon = document.createElement('canvas');
+    icon.width = 42; icon.height = 42; icon.style.imageRendering = 'pixelated';
+    drawItemPixelArt(icon.getContext('2d'), product.type, 42);
+    const text = document.createElement('div');
+    text.style.fontSize = '10px';
+    text.innerHTML = `<b>${product.name}</b><br><span style="color:#aaa">${product.desc}</span><br><span style="color:#f1c40f">🪙 ${product.price}</span>`;
+    const buy = document.createElement('button');
+    buy.innerText = 'Comprar';
+    buy.onclick = () => buyShopItem(index);
+    row.append(icon, text, buy);
+    list.appendChild(row);
+  });
+}
+
+function buyShopItem(index) {
+  const shop = SHOP_CATALOGS[currentShopId];
+  const product = shop?.products[index];
+  if (!product) return;
+  if (coins < product.price) { showToast('🪙 Coins insuficientes!'); return; }
+  coins -= product.price;
+  addItem(product.name, product.type);
+
+  if (currentShopId === 'tonho' && product.type === 'gift' && questState === 'FLOR_BUY_GIFT' && !hasGiftForLena) {
+    hasGiftForLena = true;
+  }
+  if ((currentShopId === 'tonho' || currentShopId === 'omar') && product.type === 'cesta' && questState === 'DONA_LENA_QUEST' && !hasCestaFrutas) {
+    hasCestaFrutas = true;
+    setQuestState('DONA_LENA_DELIVER');
+  }
+  if (currentShopId === 'moura' && product.type === 'tire' && questState === 'TIRE_DONE') {
+    setQuestState('TIRE_HAS_TIRE');
+  }
+  updateHUD();
+  saveGame();
+  renderShop();
+}
+
+function hasSticker(stickerId) {
+  return skillAlbum.some(s => s.stickerId === stickerId);
+}
+
+function getSkillStickerDef(item) {
+  return SKILL_STICKERS[item.type];
+}
+
+function removeTournamentCardsFromSkillAlbum() {
+  skillAlbum = skillAlbum.filter(sticker => sticker.type !== 'card');
+}
+
+function isQuestItemLocked(item) {
+  return (questState === 'TONHO_MISSION' && item.type === 'snack') ||
+    (questState === 'TALK_MOM_DAD_QUEST' && item.type === 'letter') ||
+    (questState === 'FLOR_ASK_ZE' && item.type === 'envelope') ||
+    (questState === 'FLOR_DELIVER' && item.type === 'gift') ||
+    (questState === 'DONA_LENA_DELIVER' && item.type === 'cesta') ||
+    (questState === 'TIRE_HAS_TIRE' && item.type === 'tire');
+}
+
+function recomputeSkills() {
+  skills = { thirst: 0, hunger: 0, stamina: 0, luck: 0 };
+  skillAlbum.forEach(s => {
+    if (s.skill && s.bonus) skills[s.skill] = (skills[s.skill] || 0) + s.bonus;
+  });
+}
+
+function pasteStickerFromInventory(invIndex) {
+  if (invIndex < 0 || invIndex >= inventory.length) return;
+  const item = inventory[invIndex];
+  const def = getSkillStickerDef(item);
+  if (!def) { showToast('Isso não é uma figurinha de skill.'); return; }
+  if (hasSticker(def.stickerId)) { showToast('Essa figurinha já está colada!'); return; }
+  if (isQuestItemLocked(item)) {
+    showDialog('Esse item ainda faz parte de uma missão. Termine a entrega antes de colar a figurinha.');
+    return;
+  }
+  inventory.splice(invIndex, 1);
+  skillAlbum.push({
+    stickerId: def.stickerId,
+    name: def.name,
+    skill: def.skill,
+    bonus: def.bonus,
+    type: item.type,
+    label: def.label
+  });
+  recomputeSkills();
+  updateInventoryUI();
+  renderSkillAlbum();
+  playRewardSound();
+  saveGame();
+  showToast(`✓ Colou ${def.name}! +${def.bonus}% ${def.label}`);
+}
+
+function renderSkillAlbum() {
+  const statsBox = document.getElementById('skill-stats-box');
+  statsBox.innerHTML = `
+    <div>💧 Sede: <span>+${(skills.thirst || 0).toFixed(1)}%</span></div>
+    <div>🍖 Fome: <span>+${(skills.hunger || 0).toFixed(1)}%</span></div>
+    <div>⚡ Stamina: <span>+${(skills.stamina || 0).toFixed(1)}%</span></div>
+    <div>🍀 Sorte: <span>+${(skills.luck || 0).toFixed(1)}%</span></div>
+  `;
+
+  const pasted = document.getElementById('skill-pasted-list');
+  pasted.innerHTML = '';
+  if (skillAlbum.length === 0) {
+    pasted.innerHTML = '<div style="grid-column:span 4; text-align:center; color:#666; padding:12px; font-size:11px;">Nenhuma figurinha colada ainda.</div>';
+  } else {
+    skillAlbum.forEach(s => {
+      const slot = document.createElement('div');
+      slot.className = 'storage-slot sticker-slot pasted';
+      slot.style.height = '88px';
+      const canvas = document.createElement('canvas');
+      canvas.width = 48; canvas.height = 48;
+      canvas.style.imageRendering = 'pixelated';
+      drawItemPixelArt(canvas.getContext('2d'), s.type || 'soda', 48);
+      slot.appendChild(canvas);
+      const xMark = document.createElement('div');
+      xMark.className = 'sticker-x';
+      xMark.textContent = '✕';
+      slot.appendChild(xMark);
+      const label = document.createElement('div');
+      label.style.fontSize = '8px';
+      label.style.marginTop = '2px';
+      label.innerHTML = `${s.name}<br><span style="color:#2ecc71">+${s.bonus}% ${s.label || s.skill}</span>`;
+      slot.appendChild(label);
+      pasted.appendChild(slot);
+    });
+  }
+
+  const avail = document.getElementById('skill-available-list');
+  avail.innerHTML = '';
+  let found = false;
+  inventory.forEach((item, idx) => {
+    const def = getSkillStickerDef(item);
+    if (!def || hasSticker(def.stickerId)) return;
+    if (isQuestItemLocked(item)) return;
+    found = true;
+    const slot = document.createElement('div');
+    slot.className = 'storage-slot sticker-slot available';
+    slot.style.height = '88px';
+    const canvas = document.createElement('canvas');
+    canvas.width = 48; canvas.height = 48;
+    canvas.style.imageRendering = 'pixelated';
+    drawItemPixelArt(canvas.getContext('2d'), item.type, 48);
+    slot.appendChild(canvas);
+    const label = document.createElement('div');
+    label.style.fontSize = '8px';
+    label.style.marginTop = '2px';
+    label.innerHTML = `${def.name}<br><span style="color:#f1c40f">Colar +${def.bonus}% ${def.label}</span>`;
+    slot.appendChild(label);
+    slot.onclick = () => pasteStickerFromInventory(idx);
+    avail.appendChild(slot);
+  });
+  if (!found) {
+    avail.innerHTML = '<div style="grid-column:span 4; text-align:center; color:#666; padding:12px; font-size:11px;">Nenhuma figurinha colável no inventário.</div>';
+  }
+}
+
+// --- DUELO DE CARTAS ---
+const OPPONENT_CARDS = [
+  { name: 'Moleque da Esquina', atk: 1000, def: 900 },
+  { name: 'Cachorro Caramelo', atk: 1300, def: 800 },
+  { name: 'Senhora da Fofoca', atk: 900, def: 1500 }
+];
+
+let lastDuelResult = null;
+
+function startCardDuel(playerCards) {
+  let playerCard = playerCards[0];
+  if (playerCards.length > 1) {
+    playerCard = playerCards.reduce((best, c) => (c.atk > best.atk ? c : best), playerCards[0]);
+  }
+  const oppCard = OPPONENT_CARDS[Math.floor(Math.random() * OPPONENT_CARDS.length)];
+  let resultText = '';
+  let playerWon = false;
+
+  if (playerCard.atk > oppCard.atk) {
+    playerWon = true;
+    resultText = `⚡ SEU ATAQUE VENCEU!\n\nVocê: ${playerCard.name} (ATK ${playerCard.atk})\nOponente: ${oppCard.name} (ATK ${oppCard.atk})`;
+  } else if (playerCard.atk < oppCard.atk) {
+    resultText = `💥 O oponente foi mais forte...\n\nVocê: ${playerCard.name} (ATK ${playerCard.atk})\nOponente: ${oppCard.name} (ATK ${oppCard.atk})`;
+  } else {
+    playerWon = (playerCard.def >= oppCard.def);
+    resultText = `🛡️ Empate no ataque! Decidido na DEFESA!\n\nVocê: ${playerCard.name} (DEF ${playerCard.def})\nOponente: ${oppCard.name} (DEF ${oppCard.def})`;
+  }
+
+  lastDuelResult = playerWon ? 'win' : 'lose';
+
+  showDialog(`🃏 DUELO!\n${playerCard.name} (ATK ${playerCard.atk} / DEF ${playerCard.def}) vs ${oppCard.name} (ATK ${oppCard.atk} / DEF ${oppCard.def})`);
+
+  setTimeout(() => {
+    let finalMsg = resultText;
+    if (playerWon) {
+      hasDuelledMaster = true;
+      updateCompletedQuests();
+      saveGame();
+      finalMsg += `\n\nMestre: "Humpf... Você me venceu. No grande torneio eu me vingarei!"`;
+      playRewardSound();
+      showToast('🏆 Vitória no Torneio!');
+    } else {
+      finalMsg += `\n\nMestre: "Continue treinando e coletando cartas! Você pode me desafiar de novo."`;
+      showToast('😅 Derrota — tente o duelo novamente!');
+    }
+    showDialog(finalMsg);
+  }, 3000);
+}
+
+function isHouseFullyUnlocked() {
+  const unlockedStates = [
+    'TALK_MOM_DAD_QUEST', 'TALKED_DAD', 'STREET_UNLOCKED',
+    'FIND_LJ', 'RETURN_TO_NEIGHBOR', 'NEIGHBOR_QUEST_DONE',
+    'TONHO_MISSION', 'TONHO_MISSION_DONE',
+    'FLOR_ASK_ZE', 'FLOR_GOT_INFO', 'FLOR_BUY_GIFT', 'FLOR_DELIVER', 'FLOR_DONE',
+    'DONA_LENA_QUEST', 'DONA_LENA_DELIVER', 'DONA_LENA_DONE',
+    'TIRE_START', 'TIRE_NO_MARKET', 'TIRE_DONE', 'TIRE_HAS_TIRE', 'TIRE_COMPLETE'
+  ];
+  return unlockedStates.includes(questState) || unlockedDonaLena || unlockedSilvaPereira || unlockedBarraFunda || hasDuelledMaster;
+}
+
+function isStreetUnlocked() {
+  const streetStates = [
+    'STREET_UNLOCKED', 'FIND_LJ', 'RETURN_TO_NEIGHBOR', 'NEIGHBOR_QUEST_DONE',
+    'TONHO_MISSION', 'TONHO_MISSION_DONE',
+    'FLOR_ASK_ZE', 'FLOR_GOT_INFO', 'FLOR_BUY_GIFT', 'FLOR_DELIVER', 'FLOR_DONE',
+    'DONA_LENA_QUEST', 'DONA_LENA_DELIVER', 'DONA_LENA_DONE',
+    'TIRE_START', 'TIRE_NO_MARKET', 'TIRE_DONE', 'TIRE_HAS_TIRE', 'TIRE_COMPLETE'
+  ];
+  return streetStates.includes(questState) || unlockedDonaLena || unlockedSilvaPereira || unlockedBarraFunda || hasDuelledMaster;
+}
+
+function checkCollision(targetX, targetY) {
+  const room = rooms[currentRoom];
+  const radius = 0.35;
+
+  if (targetX < 0.4 || targetX > GRID_SIZE - 0.4 || targetY < 0.4 || targetY > GRID_SIZE - 0.4) {
+    return true;
+  }
+
+  if (currentRoom === 'livingroom' && targetX < 0.6 && Math.abs(targetY - 3.5) < 0.8) {
+    if (!isHouseFullyUnlocked()) {
+      showToast("Porta da Garagem trancada!");
+      return true;
+    }
+  }
+
+  if (currentRoom === 'garage' && targetY > 6.2) {
+    if (!isStreetUnlocked()) {
+      showToast("Porta da Rua trancada! Fale com a Mãe primeiro.");
+      return true;
+    }
+  }
+
+  for (let obj of room.objects) {
+    if (obj.type === 'old_car' && !['DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'].includes(questState) && !unlockedBarraFunda) continue;
+    if (obj.type === 'rug' || obj.type === 'window') continue;
+    if (
+      targetX + radius > obj.x &&
+      targetX - radius < obj.x + obj.w &&
+      targetY + radius > obj.y &&
+      targetY - radius < obj.y + obj.h
+    ) {
+      showToast(`Encostou em: ${obj.name}`);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function checkInteraction() {
+  const room = rooms[currentRoom];
+  
+  for (let door of room.doors) {
+    if (Math.hypot(player.x - door.x, player.y - door.y) < 1.3) {
+      
+      if (currentRoom === 'livingroom' && door.targetRoom === 'garage') {
+        if (!isHouseFullyUnlocked()) {
+          showDialog("A porta da garagem está trancada no momento.");
+          return;
+        }
+      }
+
+      if (currentRoom === 'garage' && door.targetRoom === 'street') {
+        if (!isStreetUnlocked()) {
+          showDialog("A porta para a rua está trancada.");
+          return;
+        }
+      }
+
+      if (door.id === 'door_to_dona_lena' && unlockedDonaLena) {
+        // liberada
+      } else if (door.id === 'door_to_barra_funda' && unlockedBarraFunda) {
+        // liberada
+      } else if (door.id === 'door_to_silva_pereira' && unlockedSilvaPereira) {
+        // liberada
+      } else if (door.locked) {
+        showDialog(door.lockMsg || '🚧 Essa área ainda está bloqueada.');
+        return;
+      }
+
+      if (door.targetRoom) {
+        playDoorSound();
+        currentRoom = door.targetRoom;
+        player.x = door.targetX;
+        player.y = door.targetY;
+        saveGame();
+        const roomName = rooms[currentRoom]?.displayName || 'Cômodo';
+        showDialog(`Você chegou em: ${roomName}`);
+      }
+      return;
+    }
+  }
+
+  if (room.npcs) {
+    for (let npc of room.npcs) {
+      if (Math.hypot(player.x - npc.x, player.y - npc.y) < 1.5) {
+        
+        // IRMÃO
+        if (npc.id === 'brother') {
+          if (questState === 'START') {
+            setQuestState('TALK_MOM_FIRST');
+            showDialog("Irmão: 'Cara, perdi meu Game Boy! Fala com a Mãe na sala pra ver se ela sabe onde está!'");
+          } else if (questState === 'TALK_MOM_FIRST') {
+            showDialog("Irmão: 'Vai lá na sala falar com a Mãe primeiro!'");
+          } else if (questState === 'MOM_REVEALED_GAMEBOY') {
+            showDialog("Irmão: 'Pega o Game Boy em cima da mesa verde na sala pra mim!'");
+          } else if (questState === 'HAS_GAMEBOY' && hasGameboy) {
+            hasGameboy = false;
+            setQuestState('DELIVERED_GAMEBOY');
+            addItem("Bala do Irmão", "candy");
+            showDialog("Irmão: 'Caramba, valeu demais! Toma essa Bala! A Mãe tá te chamando lá na sala, corre lá!'");
+          } else {
+            showDialog("Irmão: 'Valeu por achar meu Game Boy!'");
+          }
+        } 
+        
+        // MÃE
+        else if (npc.id === 'mother') {
+          if (questState === 'START') {
+            showDialog("Mãe: 'Oi filho! Fale com seu irmão no corredor primeiro.'");
+          } else if (questState === 'TALK_MOM_FIRST') {
+            setQuestState('MOM_REVEALED_GAMEBOY');
+            showDialog("Mãe: 'Ah, o Game Boy do seu irmão? Está ali em cima da Mesa Verde! Pega pra ele.'");
+          } else if (questState === 'MOM_REVEALED_GAMEBOY') {
+            showDialog("Mãe: 'O Game Boy está bem ali na Mesa Verde.'");
+          } else if (questState === 'HAS_GAMEBOY') {
+            showDialog("Mãe: 'Entregue o Game Boy para o seu irmão no corredor!'");
+          } else if (questState === 'DELIVERED_GAMEBOY') {
+            setQuestState('TALK_MOM_DAD_QUEST');
+            addItem("Bilhete da Mãe", "letter");
+            showDialog("Mãe: 'Vem cá! Destranquei a porta da Garagem. Leve este bilhete escrito para o seu Pai!'");
+          } else if (questState === 'TALK_MOM_DAD_QUEST') {
+            showDialog("Mãe: 'Leve o bilhete para o seu pai na Garagem.'");
+          } else if (questState === 'TALKED_DAD') {
+            setQuestState('STREET_UNLOCKED');
+            addItem("Refrigerante da Mãe", "soda");
+            showDialog("Mãe: 'Obrigada por entregar o recado! Liberarei a porta da Rua para você. Tome este Refrigerante!'");
+          } else {
+            showDialog("Mãe: 'Aproveite o dia lá fora na rua!'");
+          }
+        } 
+        
+        // PAI
+        else if (npc.id === 'father') {
+          if (questState === 'TALK_MOM_DAD_QUEST') {
+            setQuestState('TALKED_DAD');
+            showDialog("Pai: (Lendo a carta) 'Ah, o bilhete da sua mãe pedindo o almoço? Certo, avise a ela que já estou subindo!'");
+          } else if (questState === 'TALKED_DAD') {
+            showDialog("Pai: 'Vá falar com a sua mãe na sala para ela liberar a rua!'");
+          } else if (questState === 'DONA_LENA_DONE' && !unlockedBarraFunda && !completedQuests.includes('q_pneu')) {
+            setQuestState('TIRE_START');
+            saveGame();
+            showDialog("Pai: 'Filho! Olha esse carro velho aqui na garagem. Tá faltando um pneu nele. Dá uma passada no mercadinho do Seu Tonho e compra um pneu pra ele!'");
+          } else if (questState === 'TIRE_START') {
+            showDialog("Pai: 'Vai lá no mercadinho do Seu Tonho ver se ele tem um pneu novo pro carro!'");
+          } else if (questState === 'TIRE_NO_MARKET') {
+            setQuestState('TIRE_DONE');
+            unlockedBarraFunda = true;
+            updateCompletedQuests();
+            saveGame();
+            showDialog("Pai: 'Não tinha no Tonho? Ah, é verdade! A loja de peças e pneus fica no Bairro Barra Funda! Liberei o caminho pra você. Vai lá na Loja de Autopeças do Seu Moura buscar o pneu!'");
+          } else if (questState === 'TIRE_DONE') {
+            showDialog("Pai: 'A Loja de Autopeças do Seu Moura fica no Bairro Barra Funda (saída direita da praça). Vai lá buscar o pneu!'");
+          } else if (questState === 'TIRE_HAS_TIRE') {
+            const tIdx = inventory.findIndex(i => i.type === 'tire');
+            if (tIdx !== -1) {
+              inventory.splice(tIdx, 1);
+              updateInventoryUI();
+            }
+            addItem('Carta do Pneu Novo', 'tire');
+            setQuestState('TIRE_COMPLETE');
+            coins += 8;
+            updateHUD();
+            updateCompletedQuests();
+            saveGame();
+            playRewardSound();
+            showDialog("Pai: 'Esse pneu é perfeito! Valeu, meu filho! Toma 8 coins pelo trabalho. Esse carro velho vai rodar que é uma beleza!'");
+          } else if (questState === 'TIRE_COMPLETE') {
+            showDialog("Pai: 'O carro já tá com pneu novo e pronto pra rodar! Valeu pela ajuda, filho.'");
+          } else {
+            showDialog("Pai: 'Cuidado com os carros lá fora na rua!'");
+          }
+        } 
+        
+        // VIZINHO SEU ZÉ
+        else if (npc.id === 'neighbor') {
+          if (questState === 'FLOR_ASK_ZE') {
+            setQuestState('FLOR_GOT_INFO');
+            const envIdx = inventory.findIndex(i => i.type === 'envelope');
+            if (envIdx !== -1) { inventory.splice(envIdx, 1); updateInventoryUI(); }
+            showDialog("Seu Zé: 'Essa flor... eu conheço! Era a preferida dela. Ela mora no Bairro Dona Lena. Diz pro Seu Armando que eu lembrei!'");
+            saveGame();
+          } else if (!returnedFlowerCard && ['FLOR_GOT_INFO','FLOR_BUY_GIFT','FLOR_DELIVER','FLOR_DONE','DONA_LENA_QUEST','DONA_LENA_DELIVER','DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'].includes(questState)) {
+            returnedFlowerCard = true;
+            addItem('Carta da Flor Esquecida', 'envelope');
+            saveGame();
+            showDialog("Seu Zé: 'Guardei a flor com cuidado. Agora ela é sua — uma carta para o seu álbum de skills.'");
+          } else if (questState === 'STREET_UNLOCKED') {
+            setQuestState('FIND_LJ');
+            showDialog("Seu Zé: 'E aí garoto! Você viu meu filho LJ? Ele se perdeu perto do banco da praça. Encontre ele pra mim!'");
+          } else if (questState === 'FIND_LJ') {
+            showDialog("Seu Zé: 'Ache meu filho LJ lá no banco da praça!'");
+          } else if (questState === 'RETURN_TO_NEIGHBOR' && foundLJ) {
+            setQuestState('NEIGHBOR_QUEST_DONE');
+            addCard('card01');
+            showDialog("Seu Zé: 'Muito obrigado por achar meu filho LJ! Toma esta carta: Guardião do Bairro! Vá conhecer o Mercadinho do Seu Tonho e a praça do Torneio!'");
+          } else {
+            showDialog("Seu Zé: 'E aí garoto! Aproveite o dia ensolarado no bairro!'");
+          }
+        }
+
+        // LJ
+        else if (npc.id === 'lj') {
+          if (questState === 'FIND_LJ') {
+            foundLJ = true;
+            setQuestState('RETURN_TO_NEIGHBOR');
+            playRewardSound();
+            showDialog("LJ: 'Caramba, meu pai Seu Zé tá me procurando? Já estou indo de volta! Vá lá falar com ele!'");
+          } else if (questState === 'RETURN_TO_NEIGHBOR') {
+            showDialog("LJ: 'Pode ir avisar meu pai que estou bem!'");
+          } else if (questState === 'TONHO_MISSION') {
+            setQuestState('TONHO_MISSION_DONE');
+            const snackIndex = inventory.findIndex(item => item.type === 'snack');
+            if (snackIndex !== -1) {
+              inventory.splice(snackIndex, 1);
+              updateInventoryUI();
+            }
+            addItem('Carta do Salgadinho', 'snack');
+            playRewardSound();
+            showDialog("LJ: 'Nossa, o Seu Tonho mandou um salgadinho pra mim? Obrigado! Leve a resposta pra ele lá no mercadinho.'");
+          } else if (questState === 'TONHO_MISSION_DONE') {
+            showDialog("LJ: 'Esse salgadinho do Seu Tonho é o melhor!'");
+          } else {
+            showDialog("LJ: 'Adoro brincar aqui fora no sol!'");
+          }
+        }
+
+        // SEU TONHO (MERCADINHO)
+        else if (npc.id === 'tonho') {
+          if (questState === 'TIRE_START') {
+            setQuestState('TIRE_NO_MARKET');
+            tireCheckedMarket = true;
+            saveGame();
+            showDialog("Seu Tonho: 'Pneu de carro? Aqui no mercadinho eu não vendo pneu, garoto! Pergunta pro seu pai se ele não tá confundindo o meu mercadinho com outra loja de peças.'");
+          } else if (questState === 'FLOR_BUY_GIFT' && !hasGiftForLena) {
+            openShop('tonho');
+            showDialog("Seu Tonho: 'A Caixa de Doces está na aba de comércio. São 10 coins!'");
+          } else if (questState === 'DONA_LENA_QUEST' && !hasCestaFrutas) {
+            openShop('tonho');
+            showDialog("Seu Tonho: 'A Cesta de Frutas está na aba de comércio. São 8 coins.'");
+          } else if (questState === 'NEIGHBOR_QUEST_DONE') {
+            setQuestState('TONHO_MISSION');
+            addItem("Salgadinho do Seu Tonho", "snack");
+            showDialog("Seu Tonho: 'Olá garoto! Seja bem-vindo ao Mercadinho. Faça-me um favor e entregue este pacote de salgadinho para o LJ lá na praça!'");
+          } else if (questState === 'TONHO_MISSION') {
+            showDialog("Seu Tonho: 'Já entregou o salgadinho para o LJ na praça?'");
+          } else if (questState === 'TONHO_MISSION_DONE') {
+            if (!receivedTonhoReward) {
+              receivedTonhoReward = true;
+              addCard('card02');
+              saveGame();
+              showDialog("Seu Tonho: 'Obrigado pela entrega, garoto! Como recompensa, toma a carta Mercante do Salgadinho pro Torneio!'");
+            } else {
+              openShop('tonho');
+            }
+          } else {
+            openShop('tonho');
+          }
+        }
+
+        // SEU MOURA (Loja de Autopeças - Barra Funda)
+        else if (npc.id === 'moura') {
+          const hasTire = inventory.some(i => i.type === 'tire');
+          if (questState === 'TIRE_DONE' && !hasTire) {
+            openShop('moura');
+            showDialog("Seu Moura: 'O pneu novo está na aba de comércio. Custa 8 coins.'");
+          } else if (questState === 'TIRE_HAS_TIRE' || hasTire) {
+            showDialog("Seu Moura: 'Já entreguei seu pneu novo! Leva pro seu pai colocar no carro velho dele.'");
+          } else {
+            openShop('moura');
+          }
+        }
+
+        // SEU ARMANDO (Jardim das Flores)
+        else if (npc.id === 'armando') {
+          const florDone = unlockedDonaLena || completedQuests.includes('q_flor') ||
+            ['FLOR_DONE','DONA_LENA_QUEST','DONA_LENA_DELIVER','DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'].includes(questState);
+          const inFlorQuest = ['FLOR_ASK_ZE','FLOR_GOT_INFO','FLOR_BUY_GIFT','FLOR_DELIVER'].includes(questState);
+
+          if (florDone && !inFlorQuest) {
+            showDialog("Seu Armando: 'Obrigado de novo por ajudar com a flor da Dona Lena!'");
+          } else if (questState === 'FLOR_DELIVER') {
+            showDialog("Seu Armando: 'Agora é só levar o presente até a Dona Lena no Bairro dela. A rua já está liberada!'");
+          } else if (questState === 'FLOR_BUY_GIFT') {
+            if (hasGiftForLena) {
+              setQuestState('FLOR_DELIVER');
+              unlockedDonaLena = true;
+              coins += 5;
+              updateHUD();
+              saveGame();
+              showDialog("Seu Armando: 'Comprou o presente? Ótimo! Fique com esse troco. O caminho pro Bairro Dona Lena está liberado!'");
+            } else {
+              showDialog("Seu Armando: 'Vá ao Mercadinho do Seu Tonho e compre um presentinho. Depois volte aqui.'");
+            }
+          } else if (questState === 'FLOR_GOT_INFO') {
+            setQuestState('FLOR_BUY_GIFT');
+            coins += 15;
+            updateHUD();
+            saveGame();
+            showDialog("Seu Armando: 'Ela mora no Bairro Dona Lena? Tome 15 coins! Vá no Mercadinho do Seu Tonho e compre uma Caixa de Doces pra ela.'");
+          } else if (questState === 'FLOR_ASK_ZE') {
+            showDialog("Seu Armando: 'Leve o envelope pro Seu Zé. Pergunte se ele lembra de quem gostava dessa flor.'");
+          } else if (questState === 'TONHO_MISSION_DONE' || hasDuelledMaster) {
+            setQuestState('FLOR_ASK_ZE');
+            addItem("Envelope com Flor", "envelope");
+            showDialog("Seu Armando: 'Ei, garoto... Guardo este envelope com uma flor antiga. Leve pro Seu Zé e pergunte se ele se lembra de quem é.'");
+          } else {
+            showDialog("Seu Armando: 'As flores deste jardim têm muita história...'");
+          }
+        }
+
+        // DONA LENA
+        else if (npc.id === 'dona_lena') {
+          if (questState === 'FLOR_DELIVER' && hasGiftForLena) {
+            setQuestState('FLOR_DONE');
+            const gIdx = inventory.findIndex(i => i.type === 'gift');
+            if (gIdx !== -1) { inventory.splice(gIdx, 1); updateInventoryUI(); }
+            addItem('Carta do Presente da Dona Lena', 'gift');
+            playRewardSound();
+            updateCompletedQuests();
+            saveGame();
+            showDialog("Dona Lena: 'Uma caixa de doces... e a flor? Que emoção! Diga ao Seu Armando que fiquei muito feliz.'");
+          } else if (questState === 'FLOR_DONE') {
+            setQuestState('DONA_LENA_QUEST');
+            unlockedSilvaPereira = true;
+            updateCompletedQuests();
+            saveGame();
+            showDialog("Dona Lena: 'Tenho um velho amigo, Seu Nestor, que se mudou pro Bairro Silva Pereira. Vá ao Mercadinho do Seu Tonho, compre uma Cesta de Frutas e leve até ele!'");
+          } else if (questState === 'DONA_LENA_QUEST') {
+            showDialog(hasCestaFrutas ? "Dona Lena: 'Leve a cesta para o Seu Nestor no Bairro Silva Pereira!'" : "Dona Lena: 'A Cesta de Frutas está à venda no Mercadinho do Seu Tonho.'");
+          } else if (questState === 'DONA_LENA_DELIVER') {
+            showDialog("Dona Lena: 'O Seu Nestor mora logo na entrada do Bairro Silva Pereira.'");
+          } else {
+            showDialog("Dona Lena: 'Obrigada por reconectar velhos amigos, meu filho!'");
+          }
+        }
+
+        // MESTRE DO TORNEIO
+        else if (npc.id === 'tournament_guy') {
+          if (questState !== 'TONHO_MISSION_DONE') {
+            showDialog("Mestre do Torneio: 'O torneio de cartas está fechado no momento. Complete suas tarefas pela vizinhança primeiro!'");
+          } else if (hasDuelledMaster) {
+            showDialog("Mestre do Torneio: 'Quando o grande torneio chegar, estarei esperando por você!'");
+          } else {
+            const playerCards = inventory.filter(i => i.type === 'card');
+            if (playerCards.length === 0) {
+              showDialog("Mestre do Torneio: 'Você ainda não tem nenhuma carta!'");
+            } else {
+              startCardDuel(playerCards);
+            }
+          }
+        }
+
+        // SEU NESTOR (Bairro Silva Pereira)
+        else if (npc.id === 'nestor') {
+          if (questState === 'DONA_LENA_DELIVER' && hasCestaFrutas) {
+            setQuestState('DONA_LENA_DONE');
+            const cIdx = inventory.findIndex(i => i.type === 'cesta');
+            if (cIdx !== -1) { inventory.splice(cIdx, 1); updateInventoryUI(); }
+            addItem('Carta da Cesta de Frutas', 'cesta');
+            coins += 6;
+            updateHUD();
+            playRewardSound();
+            updateCompletedQuests();
+            saveGame();
+            showDialog("Seu Nestor: 'Uma cesta de frutas da Dona Lena? Que alegria! Toma 6 coins de recompensa. Ah, e passa lá na sua casa: ouvi dizer que seu Pai estava querendo uma ajuda na garagem!'");
+          } else if (questState === 'DONA_LENA_DONE' || completedQuests.includes('q_cesta')) {
+            showDialog("Seu Nestor: 'Diga à Dona Lena que estou sempre por aqui! E conheça a Quitanda do Seu Omar logo ali.'");
+          } else {
+            showDialog("Seu Nestor: 'Oi, garoto! É sempre bom ver gente nova por aqui no Bairro Silva Pereira.'");
+          }
+        }
+
+        // SEU OMAR (Quitanda)
+        else if (npc.id === 'omar') {
+          if (!metOmar) {
+            metOmar = true;
+            saveGame();
+            openShop('omar');
+            showDialog("Seu Omar: 'Bem-vindo à Quitanda! Frutas, verduras e legumes frescos todo dia.'");
+          } else {
+            openShop('omar');
+          }
+        }
+        return;
+      }
+    }
+  }
+
+  for (let obj of room.objects) {
+    if (obj.type === 'old_car') {
+      const carActive = ['DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'].includes(questState) || unlockedBarraFunda;
+      if (!carActive) continue;
+    }
+    if (Math.hypot(player.x - (obj.x + obj.w/2), player.y - (obj.y + obj.h/2)) < 1.5) {
+      if (obj.type === 'table') {
+        if (questState === 'MOM_REVEALED_GAMEBOY' && !hasGameboy) {
+          hasGameboy = true;
+          setQuestState('HAS_GAMEBOY');
+          playRewardSound();
+          showDialog("Você pegou o Game Boy em cima da mesa! Leve de volta para o seu Irmão.");
+        } else {
+          showDialog("Mesa de centro limpa.");
+        }
+      } else if (obj.type === 'wardrobe') {
+        openStorageUI();
+      } else if (obj.type === 'old_car') {
+        if (questState === 'DONA_LENA_DONE' || questState === 'TIRE_START') {
+          showDialog("Carro Velho: Tá faltando um pneu novo. Fale com seu Pai na garagem.");
+        } else {
+          showDialog(`${obj.name}: ${obj.desc}`);
+        }
+      } else {
+        showDialog(`${obj.name}: ${obj.desc}`);
+      }
+      return;
+    }
+  }
+}
+
+function updateNPCs(frameScale) {
+  const room = rooms[currentRoom];
+  if (!room.npcs) return;
+
+  room.npcs.forEach(npc => {
+    npc.moveTimer = (npc.moveTimer || 0) + frameScale;
+    npc.bubbleTimer = (npc.bubbleTimer || 0) + frameScale;
+
+    if (npc.moveTimer > 180) {
+      npc.moveTimer = 0;
+      if (Math.random() > 0.4) {
+        npc.targetX = Math.max(1, Math.min(GRID_SIZE - 1, npc.x + (Math.random() * 2 - 1)));
+        npc.targetY = Math.max(1, Math.min(GRID_SIZE - 1, npc.y + (Math.random() * 2 - 1)));
+      }
+    }
+
+    const dx = npc.targetX - npc.x;
+    const dy = npc.targetY - npc.y;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist > 0.08) {
+      npc.isMoving = true;
+      npc.walkFrame = (npc.walkFrame || 0) + 0.15 * frameScale;
+      const speed = 0.02 * frameScale;
+      npc.x += (dx / dist) * speed;
+      npc.y += (dy / dist) * speed;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        npc.dir = dx > 0 ? 'right' : 'left';
+      } else {
+        npc.dir = dy > 0 ? 'down' : 'up';
+      }
+    } else {
+      npc.isMoving = false;
+    }
+  });
+}
+
+function update(frameScale) {
+  if (stats.hunger === undefined) stats.hunger = 80;
+  if (stats.maxHunger === undefined) stats.maxHunger = 100;
+
+  const thirstSkill = Math.min(50, skills.thirst || 0) / 100;
+  const hungerSkill = Math.min(50, skills.hunger || 0) / 100;
+  const stamSkill = Math.min(50, skills.stamina || 0) / 100;
+
+  stats.thirst = Math.max(0, stats.thirst - 0.005 * (1 - thirstSkill) * frameScale);
+  stats.hunger = Math.max(0, stats.hunger - 0.004 * (1 - hungerSkill) * frameScale);
+
+  let stamMult = 1;
+  if (stats.thirst < 30) stamMult += 0.5;
+  if (stats.thirst < 10) stamMult += 0.5;
+  if (stats.hunger < 30) stamMult += 0.5;
+  if (stats.hunger < 10) stamMult += 0.5;
+  stamMult *= (1 - stamSkill);
+
+  let regenMult = 1;
+  if (stats.thirst < 30 || stats.hunger < 30) regenMult = 0.5;
+  if (stats.thirst < 10 || stats.hunger < 10) regenMult = 0.25;
+
+  let dx = 0, dy = 0;
+  let speedMultiplier = 1;
+
+  // Penalidades cumulativas: recursos baixos tornam a caminhada perceptivelmente pesada.
+  if (stats.thirst <= 30) speedMultiplier *= 0.82;
+  if (stats.thirst <= 10) speedMultiplier *= 0.72;
+  if (stats.hunger <= 30) speedMultiplier *= 0.82;
+  if (stats.hunger <= 10) speedMultiplier *= 0.72;
+  if (stats.stamina <= 25) speedMultiplier *= 0.80;
+  if (stats.stamina <= 5) speedMultiplier *= 0.60;
+
+  // Mesmo nos piores estados o jogador ainda consegue chegar a um item ou NPC para se recuperar.
+  speedMultiplier = Math.max(0.22, speedMultiplier);
+  let currentSpeed = 0.07 * speedMultiplier * frameScale;
+
+  if (keys['shift'] && stats.stamina > 5) {
+    currentSpeed = 0.12 * speedMultiplier * frameScale;
+    stats.stamina = Math.max(0, stats.stamina - 0.3 * stamMult * frameScale);
+  } else {
+    stats.stamina = Math.min(stats.maxStamina, stats.stamina + 0.1 * regenMult * frameScale);
+  }
+
+  if (keys['w'] || keys['arrowup']) { dy -= currentSpeed; player.dir = 'up'; }
+  if (keys['s'] || keys['arrowdown']) { dy += currentSpeed; player.dir = 'down'; }
+  if (keys['a'] || keys['arrowleft']) { dx -= currentSpeed; player.dir = 'left'; }
+  if (keys['d'] || keys['arrowright']) { dx += currentSpeed; player.dir = 'right'; }
+
+  player.isMoving = (dx !== 0 || dy !== 0);
+
+  if (player.isMoving) {
+    player.idleTimer = 0;
+    player.walkFrame += 0.2 * frameScale;
+    player.stepTimer = (player.stepTimer || 0) + frameScale;
+    stats.hunger = Math.max(0, stats.hunger - 0.002 * (1 - hungerSkill) * frameScale);
+    stats.thirst = Math.max(0, stats.thirst - 0.002 * (1 - thirstSkill) * frameScale);
+    if (stamMult > 1 - stamSkill) {
+      stats.stamina = Math.max(0, stats.stamina - 0.04 * Math.max(0, stamMult - (1 - stamSkill)) * frameScale);
+    }
+    if (player.stepTimer >= 18) {
+      playStepSound();
+      player.stepTimer = 0;
+    }
+
+    let nextX = player.x + dx;
+    let nextY = player.y + dy;
+
+    if (!checkCollision(nextX, player.y)) player.x = nextX;
+    if (!checkCollision(player.x, nextY)) player.y = nextY;
+  } else {
+    player.idleTimer += frameScale;
+  }
+
+  updateNPCs(frameScale);
+  updateHUD();
+
+  const room = rooms[currentRoom];
+  let nearDoor = null;
+  for (let door of room.doors) {
+    if (Math.hypot(player.x - door.x, player.y - door.y) < 1.3) {
+      nearDoor = door;
+      break;
+    }
+  }
+
+  if (nearDoor) {
+    const doorPos = toIso(nearDoor.x, nearDoor.y);
+    promptUI.style.display = 'block';
+    promptUI.style.left = doorPos.x + 'px';
+    promptUI.style.top = (doorPos.y - 80) + 'px';
+    const isLocked = nearDoor.locked &&
+      !(nearDoor.id === 'door_to_dona_lena' && unlockedDonaLena) &&
+      !(nearDoor.id === 'door_to_barra_funda' && unlockedBarraFunda) &&
+      !(nearDoor.id === 'door_to_silva_pereira' && unlockedSilvaPereira);
+    promptUI.innerText = isLocked ? `🔒 ${nearDoor.label}` : nearDoor.label;
+  } else {
+    promptUI.style.display = 'none';
+  }
+}
+
+function drawIsoBox(gx, gy, w, h, zHeight, topColor, leftColor, rightColor) {
+  const p1 = toIso(gx, gy);
+  const p2 = toIso(gx + w, gy);
+  const p3 = toIso(gx + w, gy + h);
+  const p4 = toIso(gx, gy + h);
+
+  ctx.fillStyle = leftColor;
+  ctx.beginPath();
+  ctx.moveTo(p4.x, p4.y);
+  ctx.lineTo(p3.x, p3.y);
+  ctx.lineTo(p3.x, p3.y - zHeight);
+  ctx.lineTo(p4.x, p4.y - zHeight);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(0,0,0,0.2)";
+  ctx.stroke();
+
+  ctx.fillStyle = rightColor;
+  ctx.beginPath();
+  ctx.moveTo(p2.x, p2.y);
+  ctx.lineTo(p3.x, p3.y);
+  ctx.lineTo(p3.x, p3.y - zHeight);
+  ctx.lineTo(p2.x, p2.y - zHeight);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = topColor;
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y - zHeight);
+  ctx.lineTo(p2.x, p2.y - zHeight);
+  ctx.lineTo(p3.x, p3.y - zHeight);
+  ctx.lineTo(p4.x, p4.y - zHeight);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
+function drawHouseExterior(gx, gy, isNeighbor) {
+  const w = isNeighbor ? 1.2 : 2.5;
+  const h = isNeighbor ? 2.5 : 1.2;
+  const houseH = 65;
+
+  const wallTop = isNeighbor ? "#95a5a6" : "#e67e22";
+  const wallLeft = isNeighbor ? "#7f8c8d" : "#d35400";
+  const wallRight = isNeighbor ? "#707b7c" : "#a04000";
+  drawIsoBox(gx, gy, w, h, houseH, wallTop, wallLeft, wallRight);
+
+  const roofTop = "#c0392b";
+  const roofLeft = "#962d22";
+  const roofRight = "#7b241c";
+  drawIsoBox(gx - 0.1, gy - 0.1, w + 0.2, h + 0.2, 20, roofTop, roofLeft, roofRight);
+
+  if (!isNeighbor) {
+    const dPos1 = toIso(gx + 1.1, gy + h);
+    const dPos2 = toIso(gx + 1.7, gy + h);
+    ctx.fillStyle = "#5c3a21";
+    ctx.beginPath();
+    ctx.moveTo(dPos1.x, dPos1.y - 5);
+    ctx.lineTo(dPos2.x, dPos2.y - 5);
+    ctx.lineTo(dPos2.x, dPos2.y - 45);
+    ctx.lineTo(dPos1.x, dPos1.y - 45);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+  } else {
+    const dPos1 = toIso(gx + w, gy + 0.8);
+    const dPos2 = toIso(gx + w, gy + 1.6);
+    ctx.fillStyle = "#5c3a21";
+    ctx.beginPath();
+    ctx.moveTo(dPos1.x, dPos1.y - 5);
+    ctx.lineTo(dPos2.x, dPos2.y - 5);
+    ctx.lineTo(dPos2.x, dPos2.y - 42);
+    ctx.lineTo(dPos1.x, dPos1.y - 42);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+  }
+}
+
+function drawSpeechBubble(x, y, text) {
+  ctx.save();
+  ctx.font = "bold 10px monospace";
+  const textWidth = ctx.measureText(text).width;
+  const padding = 6;
+  const bw = textWidth + padding * 2;
+  const bh = 18;
+  const bx = x - bw / 2;
+  const by = y - 55;
+
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 4);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(x - 3, by + bh);
+  ctx.lineTo(x, by + bh + 5);
+  ctx.lineTo(x + 3, by + bh);
+  ctx.closePath();
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#000000";
+  ctx.textAlign = "center";
+  ctx.fillText(text, x, by + 12);
+  ctx.restore();
+}
+
+function getPlayerThought() {
+  const thoughts = {
+    TALK_MOM_FIRST: "Preciso falar com a Mãe na sala.",
+    MOM_REVEALED_GAMEBOY: "O Game Boy está na mesa verde.",
+    HAS_GAMEBOY: "Preciso levar o Game Boy pro meu irmão.",
+    DELIVERED_GAMEBOY: "A Mãe me chamou na sala!",
+    TALK_MOM_DAD_QUEST: "Preciso levar o bilhete pro Pai.",
+    TALKED_DAD: "Vou avisar a Mãe que o Pai já vai subir.",
+    STREET_UNLOCKED: "A porta da rua está liberada!",
+    FIND_LJ: "Onde será que o LJ foi parar?",
+    RETURN_TO_NEIGHBOR: "Achei o LJ. Vou avisar o Seu Zé!",
+    NEIGHBOR_QUEST_DONE: "Vou conhecer o Mercadinho do Seu Tonho!",
+    TONHO_MISSION: "Preciso levar o salgadinho para o LJ.",
+    TONHO_MISSION_DONE: hasDuelledMaster ? "O que devo fazer?" : "Será que consigo vencer o duelo?",
+    FLOR_ASK_ZE: "Preciso levar o envelope pro Seu Zé.",
+    FLOR_GOT_INFO: "Vou contar ao Seu Armando o que descobri.",
+    FLOR_BUY_GIFT: "Preciso comprar um presente no Seu Tonho.",
+    FLOR_DELIVER: "Hora de entregar o presente pra Dona Lena.",
+    FLOR_DONE: "A Dona Lena tem outro pedido...",
+    DONA_LENA_QUEST: hasCestaFrutas ? "Tenho a cesta! Vou ao Silva Pereira." : "Preciso comprar a cesta de frutas.",
+    DONA_LENA_DELIVER: "Preciso entregar a cesta pro Seu Nestor.",
+    DONA_LENA_DONE: "Vou ver o que meu Pai faz na garagem.",
+    TIRE_START: "Meu Pai precisa de um pneu. Vou no Tonho.",
+    TIRE_NO_MARKET: "O Tonho não vende pneu. Vou avisar meu Pai.",
+    TIRE_DONE: "Vou à Autopeças do Seu Moura.",
+    TIRE_HAS_TIRE: "Comprei o pneu! Vou levar pro meu Pai.",
+    TIRE_COMPLETE: "O que devo fazer?"
+  };
+  return thoughts[questState] || "O que devo fazer?";
+}
+
+function getNpcBubbleTexts(npc) {
+  const defaultTexts = ["Que dia bonito no bairro!", "Sempre tem algo acontecendo por aqui."];
+  const texts = {
+    brother: ["Será que meu Game Boy aparece?", "Quero jogar mais tarde!"],
+    mother: ["A casa fica melhor com todo mundo bem.", "Hoje vai ser um bom dia."],
+    father: ["Esse carro velho ainda vai rodar.", "Uma coisa de cada vez."],
+    neighbor: ["A vizinhança sempre ajuda.", "Espero que esteja tudo bem por aí."],
+    lj: ["A praça é o melhor lugar pra brincar!", "Será que tem salgadinho hoje?"],
+    tournament_guy: ["Cartas na mão, coragem no coração.", "Quem será o próximo desafiante?"],
+    tonho: ["Tem coisa boa no mercadinho!", "Um bairro unido é um bairro forte."],
+    dona_lena: ["Velhas amizades aquecem o coração.", "Que alegria ver gente por aqui."],
+    moura: ["Pneus, filtros e boas histórias!", "Carro cuidado não deixa ninguém na mão."],
+    nestor: ["Sempre é bom receber uma visita.", "Uma boa conversa melhora o dia."],
+    omar: ["Fruta fresquinha, pode chegar!", "A quitanda está de portas abertas."],
+    armando: ["Cada flor tem uma história.", "O jardim sempre sabe guardar segredos."]
+  };
+
+  if (npc.id === 'father') {
+    if (questState === 'DONA_LENA_DONE') return ["Filho, vem cá na garagem!", "Preciso de uma ajuda aqui."];
+    if (questState === 'TIRE_START') return ["Vai no Seu Tonho ver o pneu!", "Será que ele vende pneu?"];
+    if (questState === 'TIRE_NO_MARKET') return ["O que o Seu Tonho disse?", "Talvez eu tenha confundido as lojas..."];
+    if (questState === 'TIRE_DONE') return ["O pneu tá na Barra Funda!", "Seu Moura deve ter um pneu novo."];
+    if (questState === 'TIRE_HAS_TIRE') return ["Trouxe o pneu do carro?", "O carro está quase pronto!"];
+  }
+  if (npc.id === 'tonho' && questState === 'TIRE_START') return ["Pneu aqui no mercado?!", "Acho que o Pai se confundiu..."];
+  if (npc.id === 'armando' && questState === 'TONHO_MISSION_DONE' && hasDuelledMaster) return ["Tenho uma história pra você.", "Venha falar comigo quando puder."];
+  return texts[npc.id] || defaultTexts;
+}
+
+function getNpcBubbleText(npc) {
+  const timer = npc.bubbleTimer || 0;
+  if (timer % 420 > 330) return null;
+  const messages = getNpcBubbleTexts(npc);
+  return messages[Math.floor(timer / 150) % messages.length];
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const room = rooms[currentRoom];
+
+  if (room.type === 'outdoor') {
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, 300);
+    skyGradient.addColorStop(0, "#3a7bd5");
+    skyGradient.addColorStop(1, "#3acdff");
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // PAREDES INTERNAS
+  if (room.type === 'indoor') {
+    const pTopLeft = toIso(0, 0);
+    const pBottomLeft = toIso(0, GRID_SIZE);
+    ctx.fillStyle = room.wallLeftColor;
+    ctx.beginPath();
+    ctx.moveTo(pTopLeft.x, pTopLeft.y);
+    ctx.lineTo(pBottomLeft.x, pBottomLeft.y);
+    ctx.lineTo(pBottomLeft.x, pBottomLeft.y - WALL_H);
+    ctx.lineTo(pTopLeft.x, pTopLeft.y - WALL_H);
+    ctx.closePath();
+    ctx.fill();
+
+    const pBottomRight = toIso(GRID_SIZE, 0);
+    ctx.fillStyle = room.wallRightColor;
+    ctx.beginPath();
+    ctx.moveTo(pTopLeft.x, pTopLeft.y);
+    ctx.lineTo(pBottomRight.x, pBottomRight.y);
+    ctx.lineTo(pBottomRight.x, pBottomRight.y - WALL_H);
+    ctx.lineTo(pTopLeft.x, pTopLeft.y - WALL_H);
+    ctx.closePath();
+    ctx.fill();
+
+    room.doors.forEach(door => {
+      ctx.fillStyle = "#5c3a21";
+      let d1, d2;
+      if (door.x === 0) {
+        d1 = toIso(0, door.y - 0.8);
+        d2 = toIso(0, door.y + 0.8);
+      } else if (door.y === 0 || door.y === 7) {
+        d1 = toIso(door.x - 0.8, door.y);
+        d2 = toIso(door.x + 0.8, door.y);
+      } else return;
+
+      ctx.beginPath();
+      ctx.moveTo(d1.x, d1.y);
+      ctx.lineTo(d2.x, d2.y);
+      ctx.lineTo(d2.x, d2.y - 80);
+      ctx.lineTo(d1.x, d1.y - 80);
+      ctx.closePath();
+      ctx.fill();
+    });
+  }
+
+  // PISO
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let y = 0; y < GRID_SIZE; y++) {
+      const pt = toIso(x, y);
+      if (room.type === 'outdoor') {
+        ctx.fillStyle = (x === 3 || x === 4 || y === 3 || y === 4) ? "#7f8c8d" : "#27ae60";
+      } else {
+        ctx.fillStyle = (x + y) % 2 === 0 ? "#d2b48c" : "#c5a059";
+      }
+      ctx.beginPath();
+      ctx.moveTo(pt.x, pt.y);
+      ctx.lineTo(pt.x + TILE_W/2, pt.y + TILE_H/2);
+      ctx.lineTo(pt.x, pt.y + TILE_H);
+      ctx.lineTo(pt.x - TILE_W/2, pt.y + TILE_H/2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.05)";
+      ctx.stroke();
+    }
+  }
+
+  // RENDERIZAÇÃO ORDENADA
+  const renderList = [
+    ...room.objects.map(o => ({ ...o, renderY: o.x + o.y, kind: 'obj' })),
+    { kind: 'player', x: player.x, y: player.y, renderY: player.x + player.y }
+  ];
+
+  if (room.npcs) {
+    room.npcs.forEach(npc => renderList.push({ ...npc, renderY: npc.x + npc.y, kind: 'npc' }));
+  }
+
+  renderList.sort((a, b) => a.renderY - b.renderY);
+
+  renderList.forEach(item => {
+    const pos = toIso(item.x, item.y);
+
+    if (item.kind === 'player') {
+      drawAnimatedCharacter(pos.x, pos.y, player, "#e74c3c", "#f1c40f");
+
+      if (player.idleTimer > 90) {
+        drawSpeechBubble(pos.x, pos.y, getPlayerThought());
+      }
+
+    } else if (item.kind === 'npc') {
+      drawAnimatedCharacter(pos.x, pos.y, item, item.color, "#f39c12");
+
+      const npcThought = getNpcBubbleText(item);
+
+      if (npcThought) {
+        drawSpeechBubble(pos.x, pos.y, npcThought);
+      }
+
+    } else if (item.kind === 'obj') {
+      if (item.type === 'house_main') {
+        drawHouseExterior(item.x, item.y, false);
+      } else if (item.type === 'house_neighbor') {
+        drawHouseExterior(item.x, item.y, true);
+      } else if (item.type === 'store_tonho') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 75, "#e67e22", "#d35400", "#a04000");
+      } else if (item.type === 'tournament_booth') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 35, "#3498db", "#2980b9", "#1f618d");
+      } else if (item.type === 'bed') {
+        drawIsoBox(item.x, item.y, 2, 2.8, 12, "#7d3c98", "#5b2c6f", "#4a235a");
+        drawIsoBox(item.x + 0.1, item.y + 0.1, 1.8, 2.6, 22, "#ecf0f1", "#bdc3c7", "#95a5a6");
+        drawIsoBox(item.x + 0.1, item.y + 0.8, 1.8, 1.9, 24, "#2980b9", "#1f618d", "#1a5276");
+        drawIsoBox(item.x + 0.3, item.y + 0.2, 1.4, 0.5, 27, "#ffffff", "#d5dbdb", "#eaeded");
+        drawIsoBox(item.x, item.y, 2, 0.2, 40, "#4a235a", "#341539", "#210c24");
+      } else if (item.type === 'desk') {
+        drawIsoBox(item.x, item.y, 2, 1.2, 22, "#d35400", "#a04000", "#873600");
+        drawIsoBox(item.x + 0.6, item.y + 0.2, 0.8, 0.2, 42, "#2c3e50", "#1a252f", "#11161a");
+      } else if (item.type === 'wardrobe') {
+        drawIsoBox(item.x, item.y, 1.8, 1, 68, "#4a235a", "#341539", "#210c24");
+      } else if (item.type === 'sofa') {
+        drawIsoBox(item.x, item.y, 2.5, 1.2, 14, "#e74c3c", "#c0392b", "#962d22");
+      } else if (item.type === 'table') {
+        drawIsoBox(item.x, item.y, 1.5, 1.5, 18, "#27ae60", "#1e8449", "#145a32");
+        if (questState === 'MOM_REVEALED_GAMEBOY' && !hasGameboy) {
+          const bounce = Math.sin(Date.now() / 200) * 3;
+          drawIsoBox(item.x + 0.5, item.y + 0.5, 0.5, 0.5, 28 + bounce, "#f1c40f", "#f39c12", "#d68910");
+        }
+      } else if (item.type === 'hydrant') {
+        drawIsoBox(item.x, item.y, 0.8, 0.8, 25, "#e74c3c", "#c0392b", "#962d22");
+      } else if (item.type === 'bench') {
+        drawIsoBox(item.x, item.y, 2, 0.8, 12, "#e67e22", "#d35400", "#a04000");
+      } else if (item.type === 'plant' || item.type === 'shelf') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 20, "#7f8c8d", "#707b7c", "#616a6b");
+      } else if (item.type === 'old_car') {
+        const carActive = ['DONA_LENA_DONE','TIRE_START','TIRE_NO_MARKET','TIRE_DONE','TIRE_HAS_TIRE','TIRE_COMPLETE'].includes(questState) || unlockedBarraFunda;
+        if (carActive) {
+          drawIsoBox(item.x, item.y, item.w, item.h, 28, "#7f8c8d", "#5d6d7e", "#34495e");
+          drawIsoBox(item.x + 0.15, item.y + 0.15, item.w - 0.3, item.h - 0.3, 38, "#95a5a6", "#7f8c8d", "#5d6d7e");
+          drawIsoBox(item.x + 0.1, item.y + 0.1, 0.4, 0.4, 12, "#2c3e50", "#1a252f", "#111");
+          drawIsoBox(item.x + item.w - 0.5, item.y + item.h - 0.5, 0.4, 0.4, 12, "#2c3e50", "#1a252f", "#111");
+        }
+      } else if (item.type === 'fridge') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 50, "#ecf0f1", "#bdc3c7", "#95a5a6");
+      } else if (item.type === 'stove') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 22, "#2c3e50", "#1a252f", "#111");
+      } else if (item.type === 'tv') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 18, "#1a1a1a", "#111", "#000");
+      } else if (item.type === 'window') {
+        const p1 = toIso(item.x, item.y);
+        const p2 = toIso(item.x + item.w, item.y);
+        const winH = 55; const winBottom = 45;
+        ctx.fillStyle = '#5d4e37';
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y - winBottom); ctx.lineTo(p2.x, p2.y - winBottom);
+        ctx.lineTo(p2.x, p2.y - winBottom - winH); ctx.lineTo(p1.x, p1.y - winBottom - winH);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#85c1e9';
+        ctx.beginPath();
+        ctx.moveTo(p1.x + 4, p1.y - winBottom - 6); ctx.lineTo(p2.x - 4, p2.y - winBottom - 6);
+        ctx.lineTo(p2.x - 4, p2.y - winBottom - winH + 6); ctx.lineTo(p1.x + 4, p1.y - winBottom - winH + 6);
+        ctx.closePath(); ctx.fill();
+      } else if (item.type === 'rug') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 3, "#c0392b", "#922b21", "#7b241c");
+      } else if (item.type === 'store_auto') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 70, "#5d6d7e", "#34495e", "#2c3e50");
+        drawIsoBox(item.x + 0.8, item.y + item.h - 0.1, 0.9, 0.15, 40, "#1a1a1a", "#111", "#000");
+      } else if (item.type === 'tire_stack') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 14, "#1a1a1a", "#111", "#000");
+        drawIsoBox(item.x + 0.1, item.y + 0.1, item.w - 0.2, item.h - 0.2, 28, "#2c3e50", "#1a252f", "#111");
+      } else if (item.type === 'counter') {
+        drawIsoBox(item.x, item.y, item.w, item.h, 20, "#d35400", "#a04000", "#873600");
+      }
+    }
+  });
+}
+
+function drawAnimatedCharacter(x, y, charData, bodyColor, headColor) {
+  const breathOffset = charData.isMoving ? 0 : Math.sin(Date.now() / 250) * 1.5;
+  const legOffset = charData.isMoving ? Math.sin(charData.walkFrame * 2) * 5 : 0;
+  const armOffset = charData.isMoving ? -Math.sin(charData.walkFrame * 2) * 4 : 0;
+
+  ctx.fillStyle = "rgba(0,0,0,0.3)";
+  ctx.beginPath();
+  ctx.ellipse(x, y + 12, 10, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#2c3e50";
+  ctx.fillRect(x - 6, y - 10 + legOffset, 4, 12);
+  ctx.fillRect(x + 2, y - 10 - legOffset, 4, 12);
+
+  ctx.fillStyle = bodyColor;
+  ctx.fillRect(x - 8, y - 28 + breathOffset, 16, 18);
+  ctx.fillRect(x - 12, y - 26 + breathOffset + armOffset, 4, 12);
+  ctx.fillRect(x + 8, y - 26 + breathOffset - armOffset, 4, 12);
+
+  ctx.fillStyle = headColor;
+  ctx.fillRect(x - 7, y - 42 + breathOffset, 14, 14);
+
+  ctx.fillStyle = "#000";
+  let eyeX = x - 3;
+  let eyeY = y - 36 + breathOffset;
+
+  if (charData.dir === 'left') eyeX -= 2;
+  if (charData.dir === 'right') eyeX += 2;
+  if (charData.dir === 'up') eyeY -= 2;
+
+  if (charData.dir !== 'up') {
+    ctx.fillRect(eyeX, eyeY, 2, 3);
+    ctx.fillRect(eyeX + 5, eyeY, 2, 3);
+  }
+}
+
+function drawTitleScreen() {
+  const tc = document.getElementById('title-canvas');
+  if (!tc) return;
+  const tctx = tc.getContext('2d');
+  const W = tc.width, H = tc.height;
+  tctx.clearRect(0, 0, W, H);
+
+  tctx.fillStyle = '#1a1a2e';
+  tctx.fillRect(0, 0, W, H);
+
+  tctx.fillStyle = '#2c3e50';
+  tctx.beginPath();
+  tctx.moveTo(W/2, 30); tctx.lineTo(40, 100); tctx.lineTo(40, H - 20); tctx.lineTo(W/2, H - 90);
+  tctx.closePath(); tctx.fill();
+
+  tctx.fillStyle = '#34495e';
+  tctx.beginPath();
+  tctx.moveTo(W/2, 30); tctx.lineTo(W - 40, 100); tctx.lineTo(W - 40, H - 20); tctx.lineTo(W/2, H - 90);
+  tctx.closePath(); tctx.fill();
+
+  for (let i = 0; i < 5; i++) {
+    for (let j = 0; j < 4; j++) {
+      const sx = W/2 + (i - j) * 28;
+      const sy = 120 + (i + j) * 14;
+      tctx.fillStyle = (i + j) % 2 === 0 ? '#d2b48c' : '#c5a059';
+      tctx.beginPath();
+      tctx.moveTo(sx, sy); tctx.lineTo(sx + 28, sy + 14); tctx.lineTo(sx, sy + 28); tctx.lineTo(sx - 28, sy + 14);
+      tctx.closePath(); tctx.fill();
+    }
+  }
+
+  const px = W/2, py = 175;
+  const breath = Math.sin(Date.now() / 250) * 1.5;
+
+  tctx.fillStyle = 'rgba(0,0,0,0.3)';
+  tctx.beginPath(); tctx.ellipse(px, py + 12, 10, 5, 0, 0, Math.PI * 2); tctx.fill();
+  tctx.fillStyle = "#2c3e50"; tctx.fillRect(px - 6, py - 10, 4, 12); tctx.fillRect(px + 2, py - 10, 4, 12);
+  tctx.fillStyle = '#e74c3c'; tctx.fillRect(px - 8, py - 28 + breath, 16, 18);
+  tctx.fillRect(px - 12, py - 26 + breath, 4, 12); tctx.fillRect(px + 8, py - 26 + breath, 4, 12);
+  tctx.fillStyle = '#f1c40f'; tctx.fillRect(px - 7, py - 42 + breath, 14, 14);
+  tctx.fillStyle = '#000'; tctx.fillRect(px - 3, py - 36 + breath, 2, 3); tctx.fillRect(px + 2, py - 36 + breath, 2, 3);
+
+  const txt = 'O que devo fazer?';
+  tctx.font = 'bold 13px monospace';
+  const tw = tctx.measureText(txt).width;
+  const bx = px - tw/2 - 10;
+  const by = py - 70 + breath;
+
+  tctx.fillStyle = '#fff'; tctx.strokeStyle = '#000'; tctx.lineWidth = 2;
+  tctx.beginPath(); tctx.roundRect(bx, by, tw + 20, 22, 5); tctx.fill(); tctx.stroke();
+  tctx.beginPath(); tctx.moveTo(px - 4, by + 22); tctx.lineTo(px, by + 28); tctx.lineTo(px + 4, by + 22);
+  tctx.closePath(); tctx.fill(); tctx.stroke();
+  tctx.fillStyle = '#000'; tctx.textAlign = 'center'; tctx.fillText(txt, px, by + 15);
+}
+
+let lastFrameTime = performance.now();
+
+function loop(now) {
+  const frameScale = Math.min(3, Math.max(0, (now - lastFrameTime) / (1000 / 60)));
+  lastFrameTime = now;
+  if (gameStarted) {
+    update(frameScale);
+    draw();
+  } else {
+    drawTitleScreen();
+  }
+  requestAnimationFrame(loop);
+}
+
+function startGame(continueGame) {
+  if (continueGame) {
+    const ok = loadGame();
+    if (!ok) resetToNewGame();
+  } else {
+    clearSave();
+    resetToNewGame();
+  }
+
+  gameStarted = true;
+  document.getElementById('start-menu').style.display = 'none';
+  document.body.classList.add('game-started');
+
+  document.getElementById('hud').style.display = 'block';
+  document.getElementById('inventory-ui').style.display = 'block';
+
+  updateInventoryUI();
+  updateHUD();
+  saveGame();
+  showToast(continueGame ? '💾 Jogo carregado!' : '✦ Novo jogo iniciado!');
+}
+
+function resetToNewGame() {
+  questState = 'START';
+  hasGameboy = false;
+  foundLJ = false;
+  receivedTonhoReward = false;
+  hasDuelledMaster = false;
+  coins = 0;
+  unlockedDonaLena = false;
+  hasGiftForLena = false;
+  unlockedBarraFunda = false;
+  tireCheckedMarket = false;
+  unlockedSilvaPereira = false;
+  hasCestaFrutas = false;
+  metOmar = false;
+  returnedFlowerCard = false;
+  completedQuests = [];
+  currentRoom = 'bedroom';
+  stats = { hp: 60, maxHp: 100, stamina: 100, maxStamina: 100, thirst: 80, maxThirst: 100, hunger: 80, maxHunger: 100 };
+  inventory = [];
+  storage = [];
+  cardAlbum = [];
+  skillAlbum = [];
+  skills = { thirst: 0, hunger: 0, stamina: 0, luck: 0 };
+  skillAlbumOpen = false;
+  player = { x: 4, y: 4, dir: 'down', isMoving: false, idleTimer: 0, walkFrame: 0, stepTimer: 0 };
+}
+
+(function initMenu() {
+  const btnContinue = document.getElementById('btn-continue');
+  const btnNew = document.getElementById('btn-newgame');
+  const saveInfoEl = document.getElementById('save-info');
+
+  if (hasSave()) {
+    btnContinue.style.display = 'block';
+    const info = getSaveInfo();
+    if (info) {
+      saveInfoEl.innerHTML = `Save encontrado<br>Missão: <b>${info.quest}</b><br>Itens: ${info.items} • ${info.time}`;
+    }
+  } else {
+    saveInfoEl.innerText = 'Nenhum save encontrado. Comece um novo jogo!';
+  }
+
+  btnContinue.addEventListener('click', () => { initAudio(); startGame(true); });
+  btnNew.addEventListener('click', () => {
+    initAudio();
+    if (hasSave()) {
+      if (!confirm('Tem certeza que deseja começar um NOVO JOGO?\nO save atual será apagado.')) return;
+    }
+    startGame(false);
+  });
+
+  document.getElementById('btn-close-storage').addEventListener('click', closeStorageUI);
+  document.getElementById('btn-close-cards').addEventListener('click', closeCardAlbum);
+  document.getElementById('btn-close-skills').addEventListener('click', closeSkillAlbum);
+  document.getElementById('btn-close-quests').addEventListener('click', closeQuestLog);
+})();
+
+loop();
+</script>
+</body>
+</html>
