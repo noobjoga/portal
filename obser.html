@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>O Observatório - Um Pesadelo de Percepção</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    overflow: hidden; 
+    background: #000; 
+    font-family: 'Courier New', monospace;
+    color: #c8c8c8;
+    cursor: none;
+  }
+  #game-container { position: fixed; inset: 0; }
+  
+  #ui {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  
+  #crosshair {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    border: 1px solid rgba(200, 200, 200, 0.6);
+    border-radius: 50%;
+  }
+  
+  #message {
+    position: absolute;
+    bottom: 60px; left: 50%;
+    transform: translateX(-50%);
+    max-width: 700px;
+    padding: 18px 28px;
+    background: rgba(10, 5, 5, 0.85);
+    border: 1px solid rgba(150, 30, 30, 0.4);
+    border-left: 3px solid #8b1a1a;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    transition: opacity 0.6s;
+    text-align: center;
+    font-style: italic;
+  }
+  #message.show { opacity: 1; }
+  
+  #objective {
+    position: absolute;
+    top: 20px; left: 20px;
+    padding: 12px 18px;
+    background: rgba(10, 5, 5, 0.8);
+    border: 1px solid rgba(100, 20, 20, 0.5);
+    font-size: 13px;
+    max-width: 300px;
+    line-height: 1.5;
+  }
+  #objective .label {
+    color: #8b1a1a;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  
+  #inventory {
+    position: absolute;
+    top: 20px; right: 20px;
+    padding: 12px 18px;
+    background: rgba(10, 5, 5, 0.8);
+    border: 1px solid rgba(100, 20, 20, 0.5);
+    font-size: 12px;
+    min-width: 180px;
+  }
+  #inventory .label {
+    color: #8b1a1a;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  #inventory .item {
+    margin: 4px 0;
+    color: #b8b8b8;
+  }
+  
+  #hint {
+    position: absolute;
+    bottom: 20px; right: 20px;
+    padding: 10px 14px;
+    background: rgba(10, 5, 5, 0.8);
+    border: 1px solid rgba(100, 20, 20, 0.4);
+    font-size: 11px;
+    color: #888;
+    max-width: 260px;
+  }
+  
+  #start-screen {
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, #1a0505 0%, #000 80%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    text-align: center;
+  }
+  #start-screen h1 {
+    font-size: 56px;
+    letter-spacing: 8px;
+    color: #c8c8c8;
+    margin-bottom: 12px;
+    text-shadow: 0 0 20px rgba(139, 26, 26, 0.5);
+    animation: flicker 4s infinite;
+  }
+  #start-screen .subtitle {
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: #8b1a1a;
+    margin-bottom: 60px;
+    font-style: italic;
+  }
+  #start-screen .intro {
+    max-width: 500px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #999;
+    margin-bottom: 50px;
+    padding: 0 20px;
+  }
+  #start-btn {
+    padding: 14px 40px;
+    background: transparent;
+    border: 1px solid #8b1a1a;
+    color: #c8c8c8;
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    pointer-events: auto;
+  }
+  #start-btn:hover {
+    background: rgba(139, 26, 26, 0.2);
+    box-shadow: 0 0 20px rgba(139, 26, 26, 0.4);
+  }
+  .controls-info {
+    position: absolute;
+    bottom: 30px;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 2px;
+  }
+  
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    45% { opacity: 1; }
+    47% { opacity: 0.3; }
+    49% { opacity: 1; }
+    51% { opacity: 0.6; }
+    53% { opacity: 1; }
+  }
+  
+  #vignette {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.85) 100%);
+    z-index: 5;
+  }
+  
+  #flash-effect {
+    position: fixed; inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 50;
+    transition: opacity 0.1s;
+  }
+  
+  #end-screen {
+    position: fixed; inset: 0;
+    background: #000;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    text-align: center;
+  }
+  #end-screen h2 {
+    font-size: 36px;
+    letter-spacing: 6px;
+    color: #c8c8c8;
+    margin-bottom: 20px;
+  }
+  #end-screen p {
+    color: #888;
+    font-size: 14px;
+    line-height: 1.8;
+    max-width: 500px;
+    margin-bottom: 40px;
+  }
+  
+  .interact-prompt {
+    position: absolute;
+    top: 55%; left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 14px;
+    background: rgba(10, 5, 5, 0.9);
+    border: 1px solid rgba(150, 30, 30, 0.5);
+    font-size: 12px;
+    letter-spacing: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .interact-prompt.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="game-container"></div>
+<div id="vignette"></div>
+<div id="flash-effect"></div>
+
+<div id="ui">
+  <div id="crosshair"></div>
+  <div id="objective">
+    <div class="label">OBJETIVO</div>
+    <div id="objective-text">Explore o observatório...</div>
+  </div>
+  <div id="inventory">
+    <div class="label">PISTAS</div>
+    <div id="inventory-list"><div class="item" style="color:#555">— vazio —</div></div>
+  </div>
+  <div id="message"></div>
+  <div id="hint">[H] DICA &nbsp; [F] LANTERNA</div>
+  <div class="interact-prompt" id="interact-prompt">[E] INTERAGIR</div>
+</div>
+
+<div id="start-screen">
+  <h1>O OBSERVATÓRIO</h1>
+  <div class="subtitle">UM PESADELO DE PERCEPÇÃO</div>
+  <div class="intro">
+    Você acordou em um observatório abandonado. As paredes sussurram segredos que só a luz pode revelar. 
+    Nem tudo que você vê é real. Nem tudo que é real pode ser visto.<br><br>
+    <em>Confie apenas nos seus olhos... se puder.</em>
+  </div>
+  <button id="start-btn">ENTRAR</button>
+  <div class="controls-info">WASD MOVER · MOUSE OLHAR · E INTERAGIR · F LANTERNA</div>
+</div>
+
+<div id="end-screen">
+  <h2>VOCÊ ESCAPOU</h2>
+  <p id="end-text">Mas o observatório ainda está lá. Esperando o próximo observador.</p>
+  <button id="start-btn-2" style="padding:14px 40px;background:transparent;border:1px solid #8b1a1a;color:#c8c8c8;font-family:inherit;font-size:14px;letter-spacing:4px;cursor:pointer;">JOGAR NOVAMENTE</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ==================== GAME STATE ====================
+const state = {
+  currentRoom: 0,
+  puzzle1Solved: false,
+  puzzle2Solved: false,
+  puzzle3Solved: false,
+  symbolsFound: [],
+  symbolsOrder: [2, 0, 3, 1], // correct order to click
+  symbolsClicked: [],
+  mirrorObjects: [], // colored cubes to arrange
+  mirrorTarget: [0, 1, 2, 3], // target arrangement
+  shadowObjects: [],
+  flashlightOn: true,
+  hintsUsed: 0,
+  dragging: null,
+  dragOffset: new THREE.Vector3(),
+  interactTarget: null
+};
+
+// ==================== THREE.JS SETUP ====================
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x000000, 0.08);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(0, 1.7, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.getElementById('game-container').appendChild(renderer.domElement);
+
+// ==================== AUDIO ====================
+let audioCtx = null;
+let ambientGain = null;
+let ambientOsc = null;
+
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  ambientGain = audioCtx.createGain();
+  ambientGain.gain.value = 0.08;
+  ambientGain.connect(audioCtx.destination);
+  
+  // Eerie drone
+  ambientOsc = audioCtx.createOscillator();
+  ambientOsc.type = 'sawtooth';
+  ambientOsc.frequency.value = 55;
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 200;
+  ambientOsc.connect(filter);
+  filter.connect(ambientGain);
+  ambientOsc.start();
+  
+  // Second oscillator for dissonance
+  const osc2 = audioCtx.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.value = 58;
+  const g2 = audioCtx.createGain();
+  g2.gain.value = 0.05;
+  osc2.connect(g2);
+  g2.connect(audioCtx.destination);
+  osc2.start();
+}
+
+function playWhisper() {
+  if (!audioCtx) return;
+  const duration = 1.5 + Math.random() * 2;
+  const bufferSize = audioCtx.sampleRate * duration;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    const t = i / audioCtx.sampleRate;
+    const env = Math.sin(Math.PI * t / duration) * 0.3;
+    data[i] = (Math.random() * 2 - 1) * env * (0.5 + 0.5 * Math.sin(t * 8));
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 800 + Math.random() * 400;
+  filter.Q.value = 5;
+  const gain = audioCtx.createGain();
+  gain.gain.value = 0.15;
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+  src.start();
+}
+
+function playClick() {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = 800;
+  gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.1);
+}
+
+function playDoorSound() {
+  if (!audioCtx) return;
+  const duration = 2;
+  const bufferSize = audioCtx.sampleRate * duration;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    const t = i / audioCtx.sampleRate;
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 2) * 0.5;
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 300;
+  const gain = audioCtx.createGain();
+  gain.gain.value = 0.4;
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+  src.start();
+}
+
+setInterval(() => {
+  if (audioCtx && Math.random() < 0.3) playWhisper();
+}, 8000);
+
+// ==================== LIGHTING ====================
+const ambientLight = new THREE.AmbientLight(0x1a0505, 0.3);
+scene.add(ambientLight);
+
+// Flashlight (spotlight attached to camera)
+const flashlight = new THREE.SpotLight(0xfff4d6, 2.5, 20, Math.PI / 6, 0.4, 1.5);
+flashlight.position.set(0, 0, 0);
+flashlight.castShadow = true;
+flashlight.shadow.mapSize.width = 1024;
+flashlight.shadow.mapSize.height = 1024;
+camera.add(flashlight);
+const flashlightTarget = new THREE.Object3D();
+flashlightTarget.position.set(0, 0, -1);
+camera.add(flashlightTarget);
+flashlight.target = flashlightTarget;
+scene.add(camera);
+
+// ==================== CONTROLS ====================
+const keys = {};
+let yaw = 0, pitch = 0;
+let isLocked = false;
+
+document.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'KeyF') toggleFlashlight();
+  if (e.code === 'KeyH') showHint();
+  if (e.code === 'KeyE') interact();
+});
+document.addEventListener('keyup', e => keys[e.code] = false);
+
+document.addEventListener('mousemove', e => {
+  if (!isLocked) return;
+  yaw -= e.movementX * 0.002;
+  pitch -= e.movementY * 0.002;
+  pitch = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, pitch));
+});
+
+document.addEventListener('mousedown', e => {
+  if (!isLocked) return;
+  if (e.button === 0) {
+    if (state.dragging) return;
+    tryGrab();
+  }
+});
+document.addEventListener('mouseup', e => {
+  if (state.dragging) {
+    state.dragging = null;
+  }
+});
+
+document.addEventListener('pointerlockchange', () => {
+  isLocked = document.pointerLockElement === renderer.domElement;
+});
+
+// ==================== ROOM BUILDING ====================
+const rooms = [];
+const interactables = [];
+const doors = [];
+
+function createMaterial(color, emissive = 0x000000) {
+  return new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: 0.9,
+    metalness: 0.1,
+    emissive: emissive,
+    emissiveIntensity: 0.1
+  });
+}
+
+function createRoom(index) {
+  const room = new THREE.Group();
+  room.userData.index = index;
+  
+  const size = 12;
+  const height = 4;
+  
+  // Floor
+  const floorGeo = new THREE.PlaneGeometry(size, size);
+  const floorMat = createMaterial(0x1a1410);
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  room.add(floor);
+  
+  // Ceiling
+  const ceiling = new THREE.Mesh(floorGeo, createMaterial(0x0a0805));
+  ceiling.rotation.x = Math.PI / 2;
+  ceiling.position.y = height;
+  room.add(ceiling);
+  
+  // Walls
+  const wallMat = createMaterial(0x2a1a15);
+  const wallGeo = new THREE.PlaneGeometry(size, height);
+  
+  // Back wall
+  const backWall = new THREE.Mesh(wallGeo, wallMat);
+  backWall.position.set(0, height/2, -size/2);
+  backWall.receiveShadow = true;
+  room.add(backWall);
+  
+  // Front wall (with door gap)
+  const frontWallLeft = new THREE.Mesh(new THREE.PlaneGeometry(size/2 - 1, height), wallMat);
+  frontWallLeft.position.set(-size/4 - 0.5, height/2, size/2);
+  frontWallLeft.rotation.y = Math.PI;
+  room.add(frontWallLeft);
+  
+  const frontWallRight = new THREE.Mesh(new THREE.PlaneGeometry(size/2 - 1, height), wallMat);
+  frontWallRight.position.set(size/4 + 0.5, height/2, size/2);
+  frontWallRight.rotation.y = Math.PI;
+  room.add(frontWallRight);
+  
+  const frontWallTop = new THREE.Mesh(new THREE.PlaneGeometry(2, height - 2.5), wallMat);
+  frontWallTop.position.set(0, height - (height - 2.5)/2, size/2);
+  frontWallTop.rotation.y = Math.PI;
+  room.add(frontWallTop);
+  
+  // Side walls
+  const leftWall = new THREE.Mesh(wallGeo, wallMat);
+  leftWall.position.set(-size/2, height/2, 0);
+  leftWall.rotation.y = Math.PI / 2;
+  leftWall.receiveShadow = true;
+  room.add(leftWall);
+  
+  const rightWall = new THREE.Mesh(wallGeo, wallMat);
+  rightWall.position.set(size/2, height/2, 0);
+  rightWall.rotation.y = -Math.PI / 2;
+  rightWall.receiveShadow = true;
+  room.add(rightWall);
+  
+  // Door frame
+  const doorFrame = new THREE.Mesh(
+    new THREE.BoxGeometry(2.2, 2.6, 0.1),
+    createMaterial(0x0a0505)
+  );
+  doorFrame.position.set(0, 1.3, size/2 - 0.05);
+  room.add(doorFrame);
+  
+  // Door (closed initially)
+  const door = new THREE.Mesh(
+    new THREE.BoxGeometry(1.9, 2.4, 0.08),
+    createMaterial(0x3a2015)
+  );
+  door.position.set(0, 1.2, size/2 - 0.05);
+  door.userData.isDoor = true;
+  door.userData.roomIndex = index;
+  door.castShadow = true;
+  room.add(door);
+  doors.push(door);
+  
+  return room;
+}
+
+// ==================== PUZZLE 1: HIDDEN SYMBOLS ====================
+function setupPuzzle1() {
+  const room = createRoom(0);
+  room.position.set(0, 0, 0);
+  
+  // Symbols hidden on walls - only visible with flashlight at certain angles
+  const symbolShapes = ['△', '◇', '☽', '✧'];
+  const symbolColors = [0xff3333, 0x33ff66, 0x3366ff, 0xffcc33];
+  const symbolPositions = [
+    { pos: [-5.95, 2, -2], rot: [0, Math.PI/2, 0] },  // left wall
+    { pos: [5.95, 2, 1], rot: [0, -Math.PI/2, 0] },   // right wall
+    { pos: [-2, 2.5, -5.95], rot: [0, 0, 0] },         // back wall
+    { pos: [3, 1.5, -5.95], rot: [0, 0, 0] }           // back wall
+  ];
+  
+  symbolPositions.forEach((sp, i) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.fillStyle = '#' + symbolColors[i].toString(16).padStart(6, '0');
+    ctx.font = 'bold 180px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(symbolShapes[i], 128, 128);
+    
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.MeshStandardMaterial({
+      map: tex,
+      emissive: symbolColors[i],
+      emissiveIntensity: 0.3,
+      emissiveMap: tex,
+      transparent: true
+    });
+    const symbol = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), mat);
+    symbol.position.set(...sp.pos);
+    symbol.rotation.set(...sp.rot);
+    symbol.userData.isSymbol = true;
+    symbol.userData.symbolIndex = i;
+    symbol.userData.interactive = true;
+    symbol.userData.type = 'symbol';
+    room.add(symbol);
+    interactables.push(symbol);
+  });
+  
+  // Riddle scroll on floor
+  const scrollCanvas = document.createElement('canvas');
+  scrollCanvas.width = 512;
+  scrollCanvas.height = 256;
+  const sctx = scrollCanvas.getContext('2d');
+  sctx.fillStyle = '#d4c4a0';
+  sctx.fillRect(0, 0, 512, 256);
+  sctx.fillStyle = '#3a1a0a';
+  sctx.font = 'italic 22px serif';
+  sctx.textAlign = 'center';
+  const lines = [
+    'Primeiro a LUA prateada,',
+    'depois o TRIÂNGULO de sangue,',
+    'em seguida a ESTRELA dourada,',
+    'por fim o LOSANGO da esperança.'
+  ];
+  lines.forEach((l, i) => sctx.fillText(l, 256, 60 + i * 40));
+  
+  const scrollTex = new THREE.CanvasTexture(scrollCanvas);
+  const scroll = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.5, 0.75),
+    new THREE.MeshStandardMaterial({ map: scrollTex, roughness: 0.8 })
+  );
+  scroll.rotation.x = -Math.PI / 2;
+  scroll.position.set(0, 0.02, -2);
+  scroll.userData.isScroll = true;
+  scroll.userData.interactive = true;
+  scroll.userData.type = 'scroll';
+  room.add(scroll);
+  interactables.push(scroll);
+  
+  // Flickering candle light
+  const candleLight = new THREE.PointLight(0xff8844, 0.5, 5);
+  candleLight.position.set(0, 1.5, -2);
+  room.add(candleLight);
+  room.userData.candleLight = candleLight;
+  
+  // Candle
+  const candle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 0.3),
+    createMaterial(0xeee8c8)
+  );
+  candle.position.set(0, 0.15, -2);
+  room.add(candle);
+  
+  scene.add(room);
+  rooms.push(room);
+}
+
+// ==================== PUZZLE 2: MIRROR ====================
+function setupPuzzle2() {
+  const room = createRoom(1);
+  room.position.set(20, 0, 0);
+  
+  // Mirror on back wall
+  const mirrorCanvas = document.createElement('canvas');
+  mirrorCanvas.width = 512;
+  mirrorCanvas.height = 512;
+  const mctx = mirrorCanvas.getContext('2d');
+  const grad = mctx.createLinearGradient(0, 0, 512, 512);
+  grad.addColorStop(0, '#2a2a3a');
+  grad.addColorStop(1, '#1a1a2a');
+  mctx.fillStyle = grad;
+  mctx.fillRect(0, 0, 512, 512);
+  // Add cracks
+  mctx.strokeStyle = 'rgba(200,200,220,0.3)';
+  mctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    mctx.beginPath();
+    mctx.moveTo(Math.random() * 512, Math.random() * 512);
+    mctx.lineTo(Math.random() * 512, Math.random() * 512);
+    mctx.stroke();
+  }
+  const mirrorTex = new THREE.CanvasTexture(mirrorCanvas);
+  
+  const mirror = new THREE.Mesh(
+    new THREE.PlaneGeometry(3, 3),
+    new THREE.MeshStandardMaterial({
+      map: mirrorTex,
+      metalness: 0.9,
+      roughness: 0.1,
+      color: 0x8888aa
+    })
+  );
+  mirror.position.set(0, 2, -5.9);
+  room.add(mirror);
+  
+  // Mirror frame
+  const frame = new THREE.Mesh(
+    new THREE.BoxGeometry(3.3, 3.3, 0.1),
+    createMaterial(0x1a0a05)
+  );
+  frame.position.set(0, 2, -5.95);
+  room.add(frame);
+  
+  // 4 colored cubes to arrange - their order matters
+  const colors = [0xcc2222, 0x22cc44, 0x2244cc, 0xcccc22];
+  const colorNames = ['VERMELHO', 'VERDE', 'AZUL', 'AMARELO'];
+  const slots = [
+    new THREE.Vector3(-3, 0.4, -3),
+    new THREE.Vector3(-1, 0.4, -3),
+    new THREE.Vector3(1, 0.4, -3),
+    new THREE.Vector3(3, 0.4, -3)
+  ];
+  
+  // Target arrangement shown in mirror (reverse order visually)
+  // Player needs to arrange: AZUL, AMARELO, VERMELHO, VERDE (indices 2, 3, 0, 1)
+  state.mirrorTarget = [2, 3, 0, 1];
+  
+  // Initial random arrangement
+  const shuffled = [1, 0, 3, 2];
+  
+  slots.forEach((slot, i) => {
+    const colorIdx = shuffled[i];
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(0.6, 0.6, 0.6),
+      new THREE.MeshStandardMaterial({
+        color: colors[colorIdx],
+        roughness: 0.4,
+        metalness: 0.3,
+        emissive: colors[colorIdx],
+        emissiveIntensity: 0.15
+      })
+    );
+    cube.position.copy(slot);
+    cube.castShadow = true;
+    cube.userData.isMirrorCube = true;
+    cube.userData.colorIndex = colorIdx;
+    cube.userData.slotIndex = i;
+    cube.userData.interactive = true;
+    cube.userData.draggable = true;
+    cube.userData.type = 'mirrorCube';
+    room.add(cube);
+    interactables.push(cube);
+    state.mirrorObjects.push(cube);
+  });
+  
+  // Pedestals
+  slots.forEach(slot => {
+    const pedestal = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.5, 0.1, 16),
+      createMaterial(0x2a1a10)
+    );
+    pedestal.position.set(slot.x, 0.05, slot.z);
+    room.add(pedestal);
+  });
+  
+  // Hint text on wall
+  const hintCanvas = document.createElement('canvas');
+  hintCanvas.width = 512;
+  hintCanvas.height = 128;
+  const hctx = hintCanvas.getContext('2d');
+  hctx.fillStyle = '#1a0a05';
+  hctx.fillRect(0, 0, 512, 128);
+  hctx.fillStyle = '#8b1a1a';
+  hctx.font = 'italic 24px serif';
+  hctx.textAlign = 'center';
+  hctx.fillText('O espelho mostra a verdade.', 256, 50);
+  hctx.fillText('A realidade obedece.', 256, 90);
+  
+  const hintTex = new THREE.CanvasTexture(hintCanvas);
+  const hintPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(3, 0.75),
+    new THREE.MeshStandardMaterial({ map: hintTex, emissive: 0x8b1a1a, emissiveIntensity: 0.2, emissiveMap: hintTex })
+  );
+  hintPlane.position.set(0, 3.5, -5.85);
+  room.add(hintPlane);
+  
+  // Dim ambient light for this room
+  const roomLight = new THREE.PointLight(0x4444aa, 0.3, 10);
+  roomLight.position.set(0, 3.5, 0);
+  room.add(roomLight);
+  
+  scene.add(room);
+  rooms.push(room);
+}
+
+// ==================== PUZZLE 3: SHADOWS ====================
+function setupPuzzle3() {
+  const room = createRoom(2);
+  room.position.set(40, 0, 0);
+  
+  // Target shadow pattern - a key shape
+  // We'll use simple objects whose shadows must align
+  
+  // Light source (strong directional from above-front)
+  const shadowLight = new THREE.SpotLight(0xffffdd, 3, 20, Math.PI / 4, 0.5, 1);
+  shadowLight.position.set(0, 3.8, 3);
+  shadowLight.target.position.set(0, 0, -4);
+  shadowLight.castShadow = true;
+  shadowLight.shadow.mapSize.width = 2048;
+  shadowLight.shadow.mapSize.height = 2048;
+  room.add(shadowLight);
+  room.add(shadowLight.target);
+  room.userData.shadowLight = shadowLight;
+  
+  // Wall where shadows are cast (back wall special)
+  const shadowWall = new THREE.Mesh(
+    new THREE.PlaneGeometry(12, 4),
+    new THREE.MeshStandardMaterial({ color: 0x3a2a20, roughness: 1 })
+  );
+  shadowWall.position.set(0, 2, -5.95);
+  shadowWall.receiveShadow = true;
+  room.add(shadowWall);
+  
+  // Target shape outline on wall (faint)
+  const targetCanvas = document.createElement('canvas');
+  targetCanvas.width = 512;
+  targetCanvas.height = 256;
+  const tctx = targetCanvas.getContext('2d');
+  tctx.fillStyle = '#3a2a20';
+  tctx.fillRect(0, 0, 512, 256);
+  tctx.strokeStyle = 'rgba(139, 26, 26, 0.3)';
+  tctx.lineWidth = 2;
+  // Draw a key shape
+  tctx.beginPath();
+  tctx.arc(180, 128, 40, 0, Math.PI * 2);
+  tctx.stroke();
+  tctx.beginPath();
+  tctx.moveTo(220, 128);
+  tctx.lineTo(380, 128);
+  tctx.lineTo(380, 150);
+  tctx.moveTo(340, 128);
+  tctx.lineTo(340, 150);
+  tctx.moveTo(300, 128);
+  tctx.lineTo(300, 150);
+  tctx.stroke();
+  
+  const targetTex = new THREE.CanvasTexture(targetCanvas);
+  const targetPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(6, 3),
+    new THREE.MeshStandardMaterial({
+      map: targetTex,
+      transparent: true,
+      emissive: 0x8b1a1a,
+      emissiveIntensity: 0.1,
+      emissiveMap: targetTex
+    })
+  );
+  targetPlane.position.set(0, 2, -5.9);
+  room.add(targetPlane);
+  
+  // Objects that cast shadows - need to be moved into position
+  // Sphere (for the circle of the key)
+  const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.4, 16, 16),
+    new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.8 })
+  );
+  sphere.position.set(-3, 0.4, 0);
+  sphere.castShadow = true;
+  sphere.userData.isShadowObj = true;
+  sphere.userData.interactive = true;
+  sphere.userData.draggable = true;
+  sphere.userData.type = 'shadowObj';
+  sphere.userData.targetPos = new THREE.Vector3(-1.5, 1.5, -5);
+  room.add(sphere);
+  interactables.push(sphere);
+  state.shadowObjects.push(sphere);
+  
+  // Cylinder (for the shaft of the key)
+  const cylinder = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.15, 0.15, 1.5, 12),
+    new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.8 })
+  );
+  cylinder.rotation.z = Math.PI / 2;
+  cylinder.position.set(3, 0.4, 0);
+  cylinder.castShadow = true;
+  cylinder.userData.isShadowObj = true;
+  cylinder.userData.interactive = true;
+  cylinder.userData.draggable = true;
+  cylinder.userData.type = 'shadowObj';
+  cylinder.userData.targetPos = new THREE.Vector3(0.5, 1.5, -5);
+  room.add(cylinder);
+  interactables.push(cylinder);
+  state.shadowObjects.push(cylinder);
+  
+  // Box (for the teeth of the key)
+  const box = new THREE.Mesh(
+    new THREE.BoxGeometry(0.4, 0.6, 0.4),
+    new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.8 })
+  );
+  box.position.set(0, 0.3, 2);
+  box.castShadow = true;
+  box.userData.isShadowObj = true;
+  box.userData.interactive = true;
+  box.userData.draggable = true;
+  box.userData.type = 'shadowObj';
+  box.userData.targetPos = new THREE.Vector3(2, 1.5, -5);
+  room.add(box);
+  interactables.push(box);
+  state.shadowObjects.push(box);
+  
+  // Instructions
+  const instrCanvas = document.createElement('canvas');
+  instrCanvas.width = 512;
+  instrCanvas.height = 128;
+  const ictx = instrCanvas.getContext('2d');
+  ictx.fillStyle = '#1a0a05';
+  ictx.fillRect(0, 0, 512, 128);
+  ictx.fillStyle = '#c8c8c8';
+  ictx.font = 'italic 22px serif';
+  ictx.textAlign = 'center';
+  ictx.fillText('Molda as sombras.', 256, 50);
+  ictx.fillText('Forja a chave da libertação.', 256, 90);
+  
+  const instrTex = new THREE.CanvasTexture(instrCanvas);
+  const instrPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(3, 0.75),
+    new THREE.MeshStandardMaterial({ map: instrTex, emissive: 0x444444, emissiveIntensity: 0.2, emissiveMap: instrTex })
+  );
+  instrPlane.position.set(-5.9, 2, 0);
+  instrPlane.rotation.y = Math.PI / 2;
+  room.add(instrPlane);
+  
+  scene.add(room);
+  rooms.push(room);
+}
+
+// ==================== INITIALIZE ====================
+setupPuzzle1();
+setupPuzzle2();
+setupPuzzle3();
+
+// ==================== PLAYER MOVEMENT ====================
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+
+function updatePlayer(dt) {
+  if (!isLocked) return;
+  
+  const speed = 3.5;
+  direction.set(0, 0, 0);
+  
+  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+  const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+  
+  if (keys['KeyW']) direction.add(forward);
+  if (keys['KeyS']) direction.sub(forward);
+  if (keys['KeyD']) direction.add(right);
+  if (keys['KeyA']) direction.sub(right);
+  
+  if (direction.length() > 0) direction.normalize();
+  
+  velocity.lerp(direction.multiplyScalar(speed), 0.15);
+  
+  const newPos = camera.position.clone().add(velocity.clone().multiplyScalar(dt));
+  
+  // Room bounds
+  const roomIdx = state.currentRoom;
+  const roomOffset = new THREE.Vector3(roomIdx * 20, 0, 0);
+  const minX = roomOffset.x - 5.5;
+  const maxX = roomOffset.x + 5.5;
+  const minZ = -5.5;
+  const maxZ = 5.5;
+  
+  // Check if door is open to allow passage
+  const door = doors[roomIdx];
+  const doorOpen = door.userData.open;
+  const atDoor = newPos.z > maxZ - 0.5 && Math.abs(newPos.x - roomOffset.x) < 1;
+  
+  if (atDoor && !doorOpen) {
+    newPos.z = maxZ - 0.5;
+  } else if (atDoor && doorOpen && newPos.z > maxZ) {
+    // Transition to next room
+    if (roomIdx < 2) {
+      transitionToRoom(roomIdx + 1);
+      return;
+    } else {
+      // End game
+      endGame();
+      return;
+    }
+  }
+  
+  newPos.x = Math.max(minX, Math.min(maxX, newPos.x));
+  newPos.z = Math.max(minZ, Math.min(maxZ, newPos.z));
+  newPos.y = 1.7;
+  
+  camera.position.copy(newPos);
+  
+  // Update camera rotation
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = yaw;
+  camera.rotation.x = pitch;
+}
+
+function transitionToRoom(idx) {
+  state.currentRoom = idx;
+  camera.position.set(idx * 20, 1.7, -4);
+  yaw = 0;
+  pitch = 0;
+  playDoorSound();
+  
+  if (idx === 1) {
+    showMessage('A sala dos espelhos... O reflexo mente, mas revela.', 5000);
+    setObjective('Observe o espelho. Organize os cubos na ordem revelada.');
+  } else if (idx === 2) {
+    showMessage('As sombras dançam. Apenas a luz correta as molda.', 5000);
+    setObjective('Posicione os objetos para formar a sombra da chave na parede.');
+  }
+}
+
+// ==================== INTERACTION ====================
+const raycaster = new THREE.Raycaster();
+raycaster.far = 4;
+
+function getInteractable() {
+  raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+  const hits = raycaster.intersectObjects(interactables, false);
+  if (hits.length > 0) {
+    return hits[0].object;
+  }
+  return null;
+}
+
+function tryGrab() {
+  const target = getInteractable();
+  if (!target) return;
+  
+  if (target.userData.draggable) {
+    state.dragging = target;
+    const hitPoint = raycaster.ray.intersectPlane(
+      new THREE.Plane(new THREE.Vector3(0, 1, 0), -target.position.y),
+      new THREE.Vector3()
+    );
+    if (hitPoint) {
+      state.dragOffset.copy(target.position).sub(hitPoint);
+    }
+  } else if (target.userData.type === 'symbol') {
+    handleSymbolClick(target);
+  } else if (target.userData.type === 'scroll') {
+    showMessage('A LUA primeiro, depois o TRIÂNGULO, a ESTRELA em seguida, e por último o LOSANGO.', 4000);
+    playClick();
+  }
+}
+
+function handleSymbolClick(symbol) {
+  const idx = symbol.userData.symbolIndex;
+  playClick();
+  
+  if (state.symbolsClicked.includes(idx)) {
+    showMessage('Este símbolo já foi tocado...', 2000);
+    return;
+  }
+  
+  state.symbolsClicked.push(idx);
+  const expectedIdx = state.symbolsOrder[state.symbolsClicked.length - 1];
+  
+  if (idx !== expectedIdx) {
+    // Wrong order - reset
+    showMessage('A ordem está errada. Os símbolos se apagam...', 3000);
+    state.symbolsClicked = [];
+    // Flash effect
+    const flash = document.getElementById('flash-effect');
+    flash.style.opacity = '0.3';
+    setTimeout(() => flash.style.opacity = '0', 200);
+    playWhisper();
+    return;
+  }
+  
+  symbol.material.emissiveIntensity = 1.5;
+  
+  if (state.symbolsClicked.length === 4) {
+    // Puzzle solved!
+    state.puzzle1Solved = true;
+    showMessage('A porta range... Você pode prosseguir.', 4000);
+    setObjective('Atravesse a porta para a próxima sala.');
+    doors[0].userData.open = true;
+    // Animate door
+    animateDoor(doors[0]);
+    playDoorSound();
+    addToInventory('Ordem dos Símbolos: ☽ △ ✧ ◇');
+  } else {
+    showMessage('Símbolo correto... ' + (4 - state.symbolsClicked.length) + ' restante(s).', 2000);
+  }
+}
+
+function animateDoor(door) {
+  const start = door.position.y;
+  const target = start + 3;
+  const startTime = performance.now();
+  function anim() {
+    const t = Math.min(1, (performance.now() - startTime) / 1500);
+    door.position.y = start + (target - start) * t;
+    door.material.opacity = 1 - t;
+    door.material.transparent = true;
+    if (t < 1) requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+function checkMirrorPuzzle() {
+  // Check if cubes are in correct positions
+  const positions = state.mirrorObjects.map(o => o.userData.slotIndex);
+  const colors = state.mirrorObjects.map(o => o.userData.colorIndex);
+  
+  // For each slot, check if the color matches the target
+  let correct = true;
+  for (let i = 0; i < 4; i++) {
+    const cubeInSlot = state.mirrorObjects.find(o => o.userData.slotIndex === i);
+    if (!cubeInSlot || cubeInSlot.userData.colorIndex !== state.mirrorTarget[i]) {
+      correct = false;
+      break;
+    }
+  }
+  
+  if (correct && !state.puzzle2Solved) {
+    state.puzzle2Solved = true;
+    showMessage('O espelho sorri... A porta se abre.', 4000);
+    setObjective('Atravesse a porta para a sala final.');
+    doors[1].userData.open = true;
+    animateDoor(doors[1]);
+    playDoorSound();
+    addToInventory('Segredo do Espelho: A verdade invertida');
+    
+    // Make cubes glow
+    state.mirrorObjects.forEach(o => {
+      o.material.emissiveIntensity = 0.8;
+    });
+  }
+}
+
+function checkShadowPuzzle() {
+  // Check if shadow objects are near their target positions
+  let allCorrect = true;
+  state.shadowObjects.forEach(obj => {
+    const dist = obj.position.distanceTo(obj.userData.targetPos);
+    if (dist > 0.8) allCorrect = false;
+  });
+  
+  if (allCorrect && !state.puzzle3Solved) {
+    state.puzzle3Solved = true;
+    showMessage('A sombra da chave se forma... A saída está aberta.', 4000);
+    setObjective('Atravesse a porta final e escape do observatório.');
+    doors[2].userData.open = true;
+    animateDoor(doors[2]);
+    playDoorSound();
+    addToInventory('Chave das Sombras forjada');
+  }
+}
+
+function interact() {
+  const target = getInteractable();
+  if (!target) return;
+  
+  if (target.userData.type === 'symbol') {
+    handleSymbolClick(target);
+  } else if (target.userData.type === 'scroll') {
+    showMessage('A LUA primeiro, depois o TRIÂNGULO, a ESTRELA em seguida, e por último o LOSANGO.', 4000);
+    playClick();
+  }
+}
+
+// ==================== DRAGGING ====================
+function updateDragging() {
+  if (!state.dragging) return;
+  
+  raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+  
+  // Project onto a horizontal plane at the object's height
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -state.dragging.position.y);
+  const hitPoint = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, hitPoint);
+  
+  if (hitPoint) {
+    const newPos = hitPoint.add(state.dragOffset);
+    
+    // Constrain to room bounds
+    const roomOffset = state.currentRoom * 20;
+    newPos.x = Math.max(roomOffset - 5, Math.min(roomOffset + 5, newPos.x));
+    newPos.z = Math.max(-5, Math.min(5, newPos.z));
+    
+    state.dragging.position.x = newPos.x;
+    state.dragging.position.z = newPos.z;
+  }
+}
+
+document.addEventListener('mouseup', () => {
+  if (state.dragging) {
+    // Snap to nearest slot for mirror puzzle
+    if (state.dragging.userData.type === 'mirrorCube') {
+      const roomOffset = state.currentRoom * 20;
+      const slots = [
+        new THREE.Vector3(roomOffset - 3, 0.4, -3),
+        new THREE.Vector3(roomOffset - 1, 0.4, -3),
+        new THREE.Vector3(roomOffset + 1, 0.4, -3),
+        new THREE.Vector3(roomOffset + 3, 0.4, -3)
+      ];
+      let nearest = 0;
+      let minDist = Infinity;
+      slots.forEach((s, i) => {
+        const d = state.dragging.position.distanceTo(s);
+        if (d < minDist) { minDist = d; nearest = i; }
+      });
+      state.dragging.userData.slotIndex = nearest;
+      state.dragging.position.copy(slots[nearest]);
+      checkMirrorPuzzle();
+    }
+    
+    if (state.dragging.userData.type === 'shadowObj') {
+      checkShadowPuzzle();
+    }
+    
+    state.dragging = null;
+  }
+});
+
+// ==================== UI ====================
+function showMessage(text, duration = 3000) {
+  const msg = document.getElementById('message');
+  msg.textContent = text;
+  msg.classList.add('show');
+  clearTimeout(msg._timeout);
+  msg._timeout = setTimeout(() => msg.classList.remove('show'), duration);
+}
+
+function setObjective(text) {
+  document.getElementById('objective-text').textContent = text;
+}
+
+function addToInventory(item) {
+  const list = document.getElementById('inventory-list');
+  if (list.children[0]?.style.color === 'rgb(85, 85, 85)') {
+    list.innerHTML = '';
+  }
+  const div = document.createElement('div');
+  div.className = 'item';
+  div.textContent = '• ' + item;
+  list.appendChild(div);
+}
+
+function showHint() {
+  state.hintsUsed++;
+  if (state.currentRoom === 0) {
+    if (!state.puzzle1Solved) {
+      showMessage('DICA: Encontre o pergaminho no chão. A ordem é: ☽ △ ✧ ◇', 5000);
+    }
+  } else if (state.currentRoom === 1) {
+    if (!state.puzzle2Solved) {
+      showMessage('DICA: O espelho inverte. Organize: AZUL, AMARELO, VERMELHO, VERDE.', 5000);
+    }
+  } else if (state.currentRoom === 2) {
+    if (!state.puzzle3Solved) {
+      showMessage('DICA: Arraste os objetos perto da parede do fundo para formar a sombra da chave.', 5000);
+    }
+  }
+}
+
+function toggleFlashlight() {
+  state.flashlightOn = !state.flashlightOn;
+  flashlight.intensity = state.flashlightOn ? 2.5 : 0;
+}
+
+// ==================== END GAME ====================
+function endGame() {
+  document.exitPointerLock();
+  document.getElementById('end-screen').style.display = 'flex';
+  document.getElementById('ui').style.display = 'none';
+}
+
+// ==================== START ====================
+document.getElementById('start-btn').addEventListener('click', () => {
+  document.getElementById('start-screen').style.display = 'none';
+  initAudio();
+  renderer.domElement.requestPointerLock();
+  camera.position.set(0, 1.7, -4);
+  setObjective('Encontre os símbolos ocultos nas paredes. Examine o pergaminho no chão.');
+  showMessage('Você acorda no observatório. Algo observa de volta...', 5000);
+});
+
+document.getElementById('start-btn-2').addEventListener('click', () => {
+  location.reload();
+});
+
+renderer.domElement.addEventListener('click', () => {
+  if (document.getElementById('start-screen').style.display === 'none') {
+    renderer.domElement.requestPointerLock();
+  }
+});
+
+// ==================== RENDER LOOP ====================
+let lastTime = performance.now();
+let time = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+  time += dt;
+  
+  updatePlayer(dt);
+  updateDragging();
+  
+  // Candle flicker
+  if (rooms[0]?.userData.candleLight) {
+    rooms[0].userData.candleLight.intensity = 0.5 + Math.sin(time * 10) * 0.1 + Math.random() * 0.1;
+  }
+  
+  // Update interact prompt
+  const target = getInteractable();
+  const prompt = document.getElementById('interact-prompt');
+  if (target && !target.userData.draggable) {
+    prompt.classList.add('show');
+    if (target.userData.type === 'symbol') {
+      prompt.textContent = '[E] TOCAR SÍMBOLO';
+    } else if (target.userData.type === 'scroll') {
+      prompt.textContent = '[E] LER PERGAMINHO';
+    }
+  } else if (target && target.userData.draggable) {
+    prompt.classList.add('show');
+    prompt.textContent = '[CLIQUE] ARRASTAR';
+  } else {
+    prompt.classList.remove('show');
+  }
+  
+  // Subtle camera bob when moving
+  if (isLocked && velocity.length() > 0.1) {
+    camera.position.y = 1.7 + Math.sin(time * 8) * 0.03;
+  }
+  
+  // Random flicker effect
+  if (Math.random() < 0.001) {
+    flashlight.intensity = 0.5;
+    setTimeout(() => {
+      if (state.flashlightOn) flashlight.intensity = 2.5;
+    }, 100);
+  }
+  
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// ==================== RESIZE ====================
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
