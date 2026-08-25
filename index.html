@@ -78,7 +78,7 @@
     }
     nav a:hover { color: var(--yellow); }
 
-    /* ÁREA PRINCIPAL DOS JOGOS (LOGO NO TOPO) */
+    /* ÁREA PRINCIPAL DOS JOGOS */
     .main-container {
       flex: 1;
       max-width: 1390px;
@@ -152,29 +152,6 @@
     }
 
     .game-card:hover img { transform: scale(1.05); }
-
-    .image-fallback {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-content: center;
-      text-align: center;
-      background: #181b16;
-    }
-
-    .image-fallback span {
-      color: var(--yellow);
-      font-size: 2.5rem;
-      font-weight: 1000;
-    }
-
-    .image-fallback small {
-      color: var(--muted);
-      font-size: .55rem;
-      letter-spacing: .2em;
-    }
-
-    .game-visual.image-failed img { display: none; }
 
     .game-number {
       position: absolute;
@@ -296,8 +273,7 @@
       <!-- JOGO 1 -->
       <article class="game-card">
         <a class="game-visual" href="https://mazeloop.com/obser" aria-label="Abrir O Observatório">
-          <img src="https://raw.githubusercontent.com/noobjoga/portal/refs/heads/main/observa.png" alt="Capa do jogo O Observatório">
-          <div class="image-fallback"><span>ML</span><small>O OBSERVATÓRIO</small></div>
+          <img src="https://github.com/noobjoga/portal/blob/main/observa.png?raw=true" alt="Capa do jogo O Observatório">
           <span class="game-number">01</span>
           <span class="genre-pill">Terror psicológico</span>
         </a>
@@ -313,8 +289,7 @@
       <!-- JOGO 2 -->
       <article class="game-card">
         <a class="game-visual" href="https://mazeloop.com/JOGO12.HTML" aria-label="Abrir LABE">
-          <img src="https://raw.githubusercontent.com/noobjoga/portal/main/8ef4527f-cea0-4a4a-8ac6-55ae1e5e5518.png" alt="Capa do jogo LABE">
-          <div class="image-fallback"><span>ML</span><small>LABE</small></div>
+          <img src="https://github.com/noobjoga/portal/blob/main/8ef4527f-cea0-4a4a-8ac6-55ae1e5e5518.png?raw=true" alt="Capa do jogo LABE">
           <span class="game-number">02</span>
           <span class="genre-pill">Aventura</span>
         </a>
@@ -330,8 +305,7 @@
       <!-- JOGO 3 -->
       <article class="game-card">
         <a class="game-visual" href="https://rpg.mazeloop.com" aria-label="Abrir FUSION">
-          <img src="https://raw.githubusercontent.com/noobjoga/portal/refs/heads/main/Screenshot_1.pngQWETGSETRJHSRE5TAAJER5J.png.png" alt="Capa do jogo FUSION">
-          <div class="image-fallback"><span>ML</span><small>FUSION</small></div>
+          <img src="https://github.com/noobjoga/portal/blob/main/Screenshot_1.pngQWETGSETRJHSRE5TAAJER5J.png.png?raw=true" alt="Capa do jogo FUSION">
           <span class="game-number">03</span>
           <span class="genre-pill">RPG</span>
         </a>
@@ -347,8 +321,7 @@
       <!-- JOGO 4 -->
       <article class="game-card">
         <a class="game-visual" href="https://mazeloop.com/black_tactical_hd.html" aria-label="Abrir BLACK RS">
-          <img src="https://raw.githubusercontent.com/noobjoga/portal/refs/heads/main/blaack" alt="Capa do jogo BLACK RS">
-          <div class="image-fallback"><span>ML</span><small>BLACK RS</small></div>
+          <img src="https://github.com/noobjoga/portal/blob/main/blaack.PNG?raw=true" alt="Capa do jogo BLACK RS">
           <span class="game-number">04</span>
           <span class="genre-pill">FPS</span>
         </a>
@@ -364,7 +337,6 @@
       <!-- JOGO 5 (EM BREVE) -->
       <article class="game-card is-coming">
         <a class="game-visual" href="https://mazeloop.com/11.html" aria-label="Próximo jogo Maze Loop">
-          <div class="image-fallback"><span>ML</span><small>NOVO JOGO</small></div>
           <span class="game-number">05</span>
           <span class="genre-pill">Em desenvolvimento</span>
         </a>
@@ -393,13 +365,5 @@
     <span>Feito no Brasil <b>●</b> Jogue. Explore. Tente outra vez.</span>
   </footer>
 
-  <script>
-    // Trata imagens com erro de carregamento
-    document.querySelectorAll(".game-visual img").forEach(function (image) {
-      image.addEventListener("error", function () {
-        image.closest(".game-visual").classList.add("image-failed");
-      });
-    });
-  </script>
 </body>
 </html>
