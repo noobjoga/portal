@@ -8,6 +8,9 @@
 
   <title>Maze Loop Portal</title>
 
+  <!-- SCRIPT REAL DA MONETAG -->
+  <script src="https://quge5.com/88/tag.min.js" data-zone="272964" async data-cfasync="false"></script>
+
   <!-- FAVICON EMBUTIDO (MZ) -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23080908'/><rect x='5' y='5' width='90' height='90' rx='15' fill='none' stroke='%23ffd21c' stroke-width='6'/><text x='50%' y='62%' dominant-baseline='middle' text-anchor='middle' fill='%23ffd21c' font-family='sans-serif' font-weight='900' font-size='45'>MZ</text></svg>">
 
@@ -106,6 +109,61 @@
       color: var(--yellow);
     }
 
+    /* CROSSBAR DE CATEGORIAS */
+
+    .crossbar-section {
+      width: 100%;
+      background: #0d0f0c;
+      border-bottom: 1px solid var(--line);
+      padding: 14px clamp(16px, 4vw, 48px);
+    }
+
+    .crossbar-container {
+      max-width: 1390px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .crossbar-title {
+      font-size: 0.65rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      color: var(--yellow);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-rows: repeat(2, auto);
+      grid-auto-flow: column;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .cat-btn {
+      padding: 6px 14px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: #141713;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: all 0.2s;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .cat-btn:hover, .cat-btn.active {
+      background: var(--yellow);
+      color: #080908;
+      border-color: var(--yellow);
+    }
+
     /* CONTEÚDO PRINCIPAL */
 
     .main-container {
@@ -116,34 +174,105 @@
       padding: 32px clamp(16px, 4vw, 48px);
     }
 
-    .section-heading {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 28px;
+    /* CARD DE DESTAQUE */
+
+    .hero-featured {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 24px;
+      background: linear-gradient(145deg, #1b1e1a, #111310);
+      border: 1px solid var(--yellow);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 40px;
+      box-shadow: 0 0 30px rgba(255, 210, 28, 0.1);
     }
 
-    .section-kicker {
-      margin-bottom: 6px;
+    .hero-visual {
+      position: relative;
+      min-height: 320px;
+      background: #000;
+    }
+
+    .hero-visual iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--yellow);
+      color: #080908;
+      font-size: 0.65rem;
+      font-weight: 950;
+      letter-spacing: 0.1em;
+      z-index: 2;
+    }
+
+    .hero-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 32px 24px;
+      gap: 16px;
+    }
+
+    .hero-tag {
       color: var(--yellow);
       font-size: 0.65rem;
       font-weight: 900;
       letter-spacing: 0.2em;
     }
 
-    .section-heading h1 {
-      font-size: clamp(1.5rem, 3vw, 2.4rem);
+    .hero-info h2 {
+      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
       font-weight: 900;
-      letter-spacing: -0.03em;
+      line-height: 1.1;
     }
 
-    .section-description {
+    .hero-info p {
       color: var(--muted);
-      font-size: 0.85rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .hero-play-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-radius: 4px;
+      background: var(--yellow);
+      color: #080908;
+      font-size: 0.8rem;
+      font-weight: 950;
+      letter-spacing: 0.1em;
+      transition: all 0.2s;
+      width: fit-content;
+      gap: 12px;
+    }
+
+    .hero-play-btn:hover {
+      background: #ffe15a;
+      transform: translateY(-2px);
     }
 
     /* GRADE DOS JOGOS */
+
+    .section-heading {
+      margin-bottom: 20px;
+    }
+
+    .section-heading h3 {
+      font-size: 1.2rem;
+      font-weight: 900;
+    }
 
     .games-grid {
       display: grid;
@@ -158,9 +287,7 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       background: linear-gradient(145deg, #171a16, #111310);
-      transition:
-        transform 0.22s,
-        border-color 0.22s;
+      transition: transform 0.22s, border-color 0.22s;
     }
 
     .game-card:hover {
@@ -173,19 +300,14 @@
       display: block;
       overflow: hidden;
       aspect-ratio: 16 / 9;
-      background: #10120f;
+      background: #000;
     }
 
-    .game-visual img {
-      display: block;
+    .game-visual iframe {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      transition: transform 0.4s;
-    }
-
-    .game-card:hover .game-visual img {
-      transform: scale(1.05);
+      border: none;
+      pointer-events: none;
     }
 
     .game-number {
@@ -198,6 +320,7 @@
       background: rgba(0, 0, 0, 0.6);
       font-size: 0.65rem;
       font-weight: 900;
+      z-index: 2;
     }
 
     .genre-pill {
@@ -211,6 +334,7 @@
       font-size: 0.55rem;
       font-weight: 900;
       text-transform: uppercase;
+      z-index: 2;
     }
 
     .game-body {
@@ -246,9 +370,7 @@
       font-size: 0.68rem;
       font-weight: 950;
       letter-spacing: 0.08em;
-      transition:
-        background 0.2s,
-        transform 0.2s;
+      transition: background 0.2s, transform 0.2s;
     }
 
     .play-button:hover {
@@ -256,29 +378,55 @@
       transform: translateY(-2px);
     }
 
-    /* SOBRE */
+    /* SEÇÃO SOBRE O PROJETO / DEV */
 
     .about-strip {
       width: 100%;
       max-width: 1390px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      margin: 0 auto;
+      flex-direction: column;
+      gap: 16px;
+      margin: 40px auto 0 auto;
       padding: 40px clamp(16px, 4vw, 48px);
       border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .section-kicker {
+      color: var(--yellow);
+      font-size: 0.65rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
     }
 
     .about-strip h2 {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       font-weight: 900;
     }
 
     .about-strip p {
-      max-width: 500px;
+      max-width: 800px;
       color: var(--muted);
-      font-size: 0.85rem;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .dev-badge-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      background: #141713;
+      border: 1px solid var(--line);
+      width: fit-content;
+      margin-top: 8px;
+    }
+
+    .dev-badge-box code {
+      color: var(--yellow);
+      font-family: monospace;
+      font-size: 0.75rem;
     }
 
     /* RODAPÉ */
@@ -286,12 +434,15 @@
     footer {
       display: flex;
       justify-content: space-between;
-      padding: 20px clamp(16px, 4vw, 48px);
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 24px clamp(16px, 4vw, 48px);
       border-top: 1px solid var(--line);
       color: #70746b;
-      font-size: 0.6rem;
+      font-size: 0.65rem;
       font-weight: 800;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
@@ -299,39 +450,23 @@
       color: var(--yellow);
     }
 
-    /* CELULAR */
-
-    @media (max-width: 650px) {
-      .topbar {
-        padding: 0 16px;
+    @media (max-width: 850px) {
+      .hero-featured {
+        grid-template-columns: 1fr;
       }
-
-      nav {
-        gap: 14px;
-      }
-
-      .section-heading {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-      }
-
-      .about-strip {
+      .crossbar-container {
         flex-direction: column;
         align-items: flex-start;
       }
-
       footer {
         flex-direction: column;
-        gap: 10px;
+        align-items: flex-start;
       }
     }
   </style>
 </head>
 
 <body id="inicio">
-
-  <!-- CABEÇALHO -->
 
   <header class="topbar">
     <a class="mini-brand" href="#inicio">
@@ -341,31 +476,56 @@
 
     <nav>
       <a href="#jogos">Jogos</a>
-      <a href="#sobre">Sobre</a>
+      <a href="#sobre">Sobre Nós</a>
     </nav>
   </header>
 
-  <!-- JOGOS -->
+  <!-- CROSSBAR DE CATEGORIAS (FILTROS) -->
+  <section class="crossbar-section">
+    <div class="crossbar-container">
+      <span class="crossbar-title">Gêneros:</span>
+      <div class="categories-grid">
+        <button type="button" class="cat-btn active" data-filter="all">TODOS</button>
+        <button type="button" class="cat-btn" data-filter="Estratégia">ESTRATÉGIA</button>
+        <button type="button" class="cat-btn" data-filter="Arcade">ARCADE</button>
+        <button type="button" class="cat-btn" data-filter="FPS">FPS</button>
+        <button type="button" class="cat-btn" data-filter="RPG">RPG</button>
+        <button type="button" class="cat-btn" data-filter="Aventura">AVENTURA</button>
+        <button type="button" class="cat-btn" data-filter="Terror">TERROR</button>
+        <button type="button" class="cat-btn" data-filter="Em dev">EM BREVE</button>
+      </div>
+    </div>
+  </section>
 
   <main class="main-container" id="jogos">
 
-    <div class="section-heading">
-      <div>
-        <p class="section-kicker">PORTAL DE JOGOS</p>
-        <h1>Jogos em Destaque</h1>
+    <!-- JOGO DE DESTAQUE COM IFRAME AO VIVO -->
+    <article class="hero-featured">
+      <div class="hero-visual">
+        <iframe src="https://mazeloop.com/campo_minado_pro.html" title="Preview do Campo Minado Pro" loading="lazy"></iframe>
+        <span class="hero-badge">NOVO LANÇAMENTO</span>
       </div>
+      <div class="hero-info">
+        <span class="hero-tag">DESTAQUE DO MÊS</span>
+        <h2>CAMPO MINADO PRO</h2>
+        <p>A versão definitiva do clássico. Teste sua lógica e paciência em um visual moderno e responsivo.</p>
+        <a class="hero-play-btn" href="https://mazeloop.com/campo_minado_pro.html">
+          <span>JOGAR AGORA</span>
+          <b>↗</b>
+        </a>
+      </div>
+    </article>
 
-      <p class="section-description">
-        Projetos autorais e gratuitos para jogar direto no navegador.
-      </p>
+    <div class="section-heading">
+      <h3>Todos os Jogos</h3>
     </div>
 
+    <!-- GRADE NORMAL DE JOGOS -->
     <div class="games-grid" id="grid-jogos">
 
-      <!-- CAMPO MINADO PRO -->
-      <article class="game-card" data-data="2026-08-25">
-        <a class="game-visual" href="https://mazeloop.com/campo_minado_pro.html" aria-label="Abrir Campo Minado Pro">
-          <img src="LINK-DA-SUA-IMAGEM-AQUI.png" alt="Capa do jogo Campo Minado Pro">
+      <article class="game-card" data-data="2026-08-25" data-genre="Estratégia">
+        <a class="game-visual" href="https://mazeloop.com/campo_minado_pro.html">
+          <iframe src="https://mazeloop.com/campo_minado_pro.html" title="Campo Minado Pro" loading="lazy"></iframe>
           <span class="game-number">07</span>
           <span class="genre-pill">Estratégia</span>
         </a>
@@ -381,10 +541,9 @@
         </div>
       </article>
 
-      <!-- PATO VELHO -->
-      <article class="game-card" data-data="2026-08-20">
-        <a class="game-visual" href="https://mazeloop.com/seis-pato-velho.html" aria-label="Abrir Pato Velho">
-          <img src="LINK-DA-SUA-IMAGEM-AQUI.png" alt="Capa do jogo Pato Velho">
+      <article class="game-card" data-data="2026-08-20" data-genre="Arcade">
+        <a class="game-visual" href="https://mazeloop.com/seis-pato-velho.html">
+          <iframe src="https://mazeloop.com/seis-pato-velho.html" title="Pato Velho" loading="lazy"></iframe>
           <span class="game-number">06</span>
           <span class="genre-pill">Arcade</span>
         </a>
@@ -400,10 +559,9 @@
         </div>
       </article>
 
-      <!-- BLACK RS -->
-      <article class="game-card" data-data="2026-05-10">
-        <a class="game-visual" href="https://mazeloop.com/black_tactical_hd.html" aria-label="Abrir BLACK RS">
-          <img src="https://github.com/noobjoga/portal/blob/main/blaack.PNG?raw=true" alt="Capa do jogo BLACK RS">
+      <article class="game-card" data-data="2026-05-10" data-genre="FPS">
+        <a class="game-visual" href="https://mazeloop.com/black_tactical_hd.html">
+          <iframe src="https://mazeloop.com/black_tactical_hd.html" title="BLACK RS" loading="lazy"></iframe>
           <span class="game-number">05</span>
           <span class="genre-pill">FPS</span>
         </a>
@@ -419,10 +577,9 @@
         </div>
       </article>
 
-      <!-- FUSION -->
-      <article class="game-card" data-data="2026-04-15">
-        <a class="game-visual" href="https://rpg.mazeloop.com" aria-label="Abrir FUSION">
-          <img src="https://github.com/noobjoga/portal/blob/main/Screenshot_1.pngQWETGSETRJHSRE5TAAJER5J.png.png?raw=true" alt="Capa do jogo FUSION">
+      <article class="game-card" data-data="2026-04-15" data-genre="RPG">
+        <a class="game-visual" href="https://rpg.mazeloop.com">
+          <iframe src="https://rpg.mazeloop.com" title="FUSION" loading="lazy"></iframe>
           <span class="game-number">04</span>
           <span class="genre-pill">RPG</span>
         </a>
@@ -438,17 +595,16 @@
         </div>
       </article>
 
-      <!-- LABE -->
-      <article class="game-card" data-data="2026-03-01">
-        <a class="game-visual" href="https://mazeloop.com/JOGO12.HTML" aria-label="Abrir LABE">
-          <img src="https://github.com/noobjoga/portal/blob/main/8ef4527f-cea0-4a4a-8ac6-55ae1e5e5518.png?raw=true" alt="Capa do jogo LABE">
+      <article class="game-card" data-data="2026-03-01" data-genre="Aventura">
+        <a class="game-visual" href="https://mazeloop.com/JOGO12.HTML">
+          <iframe src="https://mazeloop.com/JOGO12.HTML" title="LABE" loading="lazy"></iframe>
           <span class="game-number">03</span>
           <span class="genre-pill">Aventura</span>
         </a>
         <div class="game-body">
           <div>
             <h2>LABE</h2>
-            <p>O que eu vou fazer? Uma experiência isométrica autoral.</p>
+            <p>Uma experiência isométrica autoral.</p>
           </div>
           <a class="play-button" href="https://mazeloop.com/JOGO12.HTML">
             <span>JOGAR AGORA</span>
@@ -457,12 +613,11 @@
         </div>
       </article>
 
-      <!-- O OBSERVATÓRIO -->
-      <article class="game-card" data-data="2026-02-10">
-        <a class="game-visual" href="https://mazeloop.com/obser" aria-label="Abrir O Observatório">
-          <img src="https://github.com/noobjoga/portal/blob/main/observa.png?raw=true" alt="Capa do jogo O Observatório">
+      <article class="game-card" data-data="2026-02-10" data-genre="Terror">
+        <a class="game-visual" href="https://mazeloop.com/obser">
+          <iframe src="https://mazeloop.com/obser" title="O Observatório" loading="lazy"></iframe>
           <span class="game-number">02</span>
-          <span class="genre-pill">Terror psicológico</span>
+          <span class="genre-pill">Terror</span>
         </a>
         <div class="game-body">
           <div>
@@ -476,12 +631,11 @@
         </div>
       </article>
 
-      <!-- ZELO -->
-      <article class="game-card" data-data="2026-01-01">
-        <a class="game-visual" href="https://mazeloop.com/zelo.html" aria-label="Abrir o jogo Zelo">
-          <img src="LINK-DA-SUA-IMAGEM-AQUI.png" alt="Capa do jogo Zelo">
+      <article class="game-card" data-data="2026-01-01" data-genre="Em dev">
+        <a class="game-visual" href="https://mazeloop.com/zelo.html">
+          <iframe src="https://mazeloop.com/zelo.html" title="Zelo" loading="lazy"></iframe>
           <span class="game-number">01</span>
-          <span class="genre-pill">Em desenvolvimento</span>
+          <span class="genre-pill">Em dev</span>
         </a>
         <div class="game-body">
           <div>
@@ -498,41 +652,59 @@
     </div>
   </main>
 
-  <!-- SOBRE -->
-
+  <!-- SEÇÃO SOBRE NÓS -->
   <section class="about-strip" id="sobre">
     <div>
-      <p class="section-kicker">ESTÚDIO INDEPENDENTE</p>
-      <h2>Maze Loop Games</h2>
+      <span class="section-kicker">ESTÚDIO INDEPENDENTE</span>
+      <h2>Sobre Nós & Desenvolvimento</h2>
     </div>
-
+    
     <p>
-      Cada jogo é uma nova experiência e também um novo passo no
-      desenvolvimento do portal.
+      O Maze Loop é um portal autoral criado para explorar ideias, mecânicas e criar jogos diretos no navegador. 
+      Estou em constante aprendizado no mundo da programação, por isso alguns jogos ainda estão em fase de teste, ajustes ou desenvolvimento ativo.
     </p>
+
+    <div class="dev-badge-box">
+      <code>&lt;devstatus&gt; Programador em desenvolvimento... &lt;/devstatus&gt;</code>
+    </div>
   </section>
 
   <!-- RODAPÉ -->
-
   <footer>
-    <span>© 2026 MAZE LOOP</span>
-
-    <span>
-      Feito no Brasil <b>●</b> Jogue. Explore. Tente outra vez.
-    </span>
+    <span>© 2026 MAZE LOOP <b>●</b> PROGRAMADOR EM DESENVOLVIMENTO</span>
+    <span>Obrigado por jogar! Divirta-se e continue explorando.</span>
   </footer>
 
-  <!-- SCRIPT DE ORDENAÇÃO AUTOMÁTICA POR DATA -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      // 1. ORDENAÇÃO DOS JOGOS POR DATA
       const grid = document.getElementById("grid-jogos");
       const jogos = Array.from(grid.querySelectorAll(".game-card"));
 
-      // Ordena do mais recente (data maior) para o mais antigo (data menor)
       jogos.sort((a, b) => new Date(b.dataset.data) - new Date(a.dataset.data));
-
-      // Reorganiza no HTML automaticamente
       jogos.forEach(jogo => grid.appendChild(jogo));
+
+      // 2. FILTRO POR CATEGORIA (SEM RECARREGAR A PÁGINA)
+      const filterBtns = document.querySelectorAll(".cat-btn");
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          // Destaca o botão selecionado
+          filterBtns.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          const filterValue = btn.dataset.filter;
+
+          // Mostra ou esconde os jogos com base no gênero
+          jogos.forEach(card => {
+            if (filterValue === "all" || card.dataset.genre === filterValue) {
+              card.style.display = "flex";
+            } else {
+              card.style.display = "none";
+            }
+          });
+        });
+      });
     });
   </script>
 
