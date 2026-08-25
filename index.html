@@ -1,712 +1,547 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080908">
-  <meta name="description" content="Portal independente de jogos autorais feitos com HTML, CSS e JavaScript.">
-
-  <title>Maze Loop Portal</title>
-
-  <!-- SCRIPT REAL DA MONETAG -->
-  <script src="https://quge5.com/88/tag.min.js" data-zone="272964" async data-cfasync="false"></script>
-
-  <!-- FAVICON EMBUTIDO (MZ) -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23080908'/><rect x='5' y='5' width='90' height='90' rx='15' fill='none' stroke='%23ffd21c' stroke-width='6'/><text x='50%' y='62%' dominant-baseline='middle' text-anchor='middle' fill='%23ffd21c' font-family='sans-serif' font-weight='900' font-size='45'>MZ</text></svg>">
-
+  <title>Vila Sweet — Protótipo Isométrico</title>
   <style>
-    :root {
-      --yellow: #ffd21c;
-      --hot: #ffb800;
-      --ink: #080908;
-      --panel: #111310;
-      --line: rgba(255, 255, 255, 0.11);
-      --muted: #a5a99f;
-      --white: #f7f8f4;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
     body {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-      color: var(--white);
-      background: var(--ink);
-      font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+      background: #0b1015;
+      color: #e8f0f2;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    ::selection {
-      color: #080908;
-      background: var(--yellow);
-    }
-
-    /* CABEÇALHO */
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      height: 65px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 clamp(16px, 4vw, 48px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(8, 9, 8, 0.92);
-      backdrop-filter: blur(12px);
-    }
-
-    .mini-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.85rem;
-      font-weight: 900;
-      letter-spacing: 0.15em;
-    }
-
-    .mini-mark {
-      width: 32px;
-      height: 32px;
-      display: grid;
-      place-items: center;
-      border-radius: 6px;
-      color: #070807;
-      background: var(--yellow);
-      box-shadow: 0 0 16px rgba(255, 210, 28, 0.3);
-    }
-
-    nav {
-      display: flex;
-      gap: 24px;
-    }
-
-    nav a {
-      color: var(--muted);
-      font-size: 0.75rem;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      transition: color 0.2s;
-    }
-
-    nav a:hover {
-      color: var(--yellow);
-    }
-
-    /* CROSSBAR DE CATEGORIAS */
-
-    .crossbar-section {
-      width: 100%;
-      background: #0d0f0c;
-      border-bottom: 1px solid var(--line);
-      padding: 14px clamp(16px, 4vw, 48px);
-    }
-
-    .crossbar-container {
-      max-width: 1390px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .crossbar-title {
-      font-size: 0.65rem;
-      font-weight: 900;
-      letter-spacing: 0.15em;
-      color: var(--yellow);
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .categories-grid {
-      display: grid;
-      grid-template-rows: repeat(2, auto);
-      grid-auto-flow: column;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-
-    .cat-btn {
-      padding: 6px 14px;
-      border-radius: 4px;
-      border: 1px solid var(--line);
-      background: #141713;
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 800;
-      white-space: nowrap;
-      transition: all 0.2s;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    .cat-btn:hover, .cat-btn.active {
-      background: var(--yellow);
-      color: #080908;
-      border-color: var(--yellow);
-    }
-
-    /* CONTEÚDO PRINCIPAL */
-
-    .main-container {
-      flex: 1;
-      width: 100%;
-      max-width: 1390px;
-      margin: 0 auto;
-      padding: 32px clamp(16px, 4vw, 48px);
-    }
-
-    /* CARD DE DESTAQUE */
-
-    .hero-featured {
-      display: grid;
-      grid-template-columns: 1.4fr 1fr;
-      gap: 24px;
-      background: linear-gradient(145deg, #1b1e1a, #111310);
-      border: 1px solid var(--yellow);
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 40px;
-      box-shadow: 0 0 30px rgba(255, 210, 28, 0.1);
-    }
-
-    .hero-visual {
-      position: relative;
-      min-height: 320px;
-      background: #000;
-    }
-
-    .hero-visual iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      pointer-events: none;
-    }
-
-    .hero-badge {
-      position: absolute;
-      top: 16px;
+    #game { width: 100%; height: 100%; }
+    #game canvas { display: block; }
+    .help {
+      position: fixed;
+      z-index: 10;
       left: 16px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      background: var(--yellow);
-      color: #080908;
-      font-size: 0.65rem;
-      font-weight: 950;
-      letter-spacing: 0.1em;
-      z-index: 2;
-    }
-
-    .hero-info {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 32px 24px;
-      gap: 16px;
-    }
-
-    .hero-tag {
-      color: var(--yellow);
-      font-size: 0.65rem;
-      font-weight: 900;
-      letter-spacing: 0.2em;
-    }
-
-    .hero-info h2 {
-      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-      font-weight: 900;
-      line-height: 1.1;
-    }
-
-    .hero-info p {
-      color: var(--muted);
-      font-size: 0.88rem;
-      line-height: 1.5;
-    }
-
-    .hero-play-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
-      border-radius: 4px;
-      background: var(--yellow);
-      color: #080908;
-      font-size: 0.8rem;
-      font-weight: 950;
-      letter-spacing: 0.1em;
-      transition: all 0.2s;
-      width: fit-content;
-      gap: 12px;
-    }
-
-    .hero-play-btn:hover {
-      background: #ffe15a;
-      transform: translateY(-2px);
-    }
-
-    /* GRADE DOS JOGOS */
-
-    .section-heading {
-      margin-bottom: 20px;
-    }
-
-    .section-heading h3 {
-      font-size: 1.2rem;
-      font-weight: 900;
-    }
-
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
-    }
-
-    .game-card {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: linear-gradient(145deg, #171a16, #111310);
-      transition: transform 0.22s, border-color 0.22s;
-    }
-
-    .game-card:hover {
-      border-color: rgba(255, 210, 28, 0.65);
-      transform: translateY(-6px);
-    }
-
-    .game-visual {
-      position: relative;
-      display: block;
-      overflow: hidden;
-      aspect-ratio: 16 / 9;
-      background: #000;
-    }
-
-    .game-visual iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+      top: 16px;
+      max-width: min(470px, calc(100vw - 32px));
+      padding: 12px 14px;
+      border: 1px solid rgba(150, 220, 204, .24);
+      border-radius: 10px;
+      background: rgba(5, 10, 14, .80);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, .28);
+      backdrop-filter: blur(6px);
       pointer-events: none;
     }
-
-    .game-number {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: rgba(255, 255, 255, 0.8);
-      background: rgba(0, 0, 0, 0.6);
-      font-size: 0.65rem;
-      font-weight: 900;
-      z-index: 2;
-    }
-
-    .genre-pill {
-      position: absolute;
-      right: 12px;
-      bottom: 12px;
-      padding: 4px 8px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 999px;
-      background: rgba(8, 9, 8, 0.8);
-      font-size: 0.55rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      z-index: 2;
-    }
-
-    .game-body {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 18px;
-    }
-
-    .game-body h2 {
-      margin-bottom: 6px;
-      font-size: 1.05rem;
-      font-weight: 900;
-    }
-
-    .game-body p {
-      color: var(--muted);
-      font-size: 0.8rem;
-      line-height: 1.4;
-    }
-
-    .play-button {
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      border-radius: 4px;
-      color: #090a08;
-      background: var(--yellow);
-      font-size: 0.68rem;
-      font-weight: 950;
-      letter-spacing: 0.08em;
-      transition: background 0.2s, transform 0.2s;
-    }
-
-    .play-button:hover {
-      background: #ffe15a;
-      transform: translateY(-2px);
-    }
-
-    /* SEÇÃO SOBRE O PROJETO / DEV */
-
-    .about-strip {
-      width: 100%;
-      max-width: 1390px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin: 40px auto 0 auto;
-      padding: 40px clamp(16px, 4vw, 48px);
-      border-top: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.01);
-    }
-
-    .section-kicker {
-      color: var(--yellow);
-      font-size: 0.65rem;
-      font-weight: 900;
-      letter-spacing: 0.15em;
-    }
-
-    .about-strip h2 {
-      font-size: 1.3rem;
-      font-weight: 900;
-    }
-
-    .about-strip p {
-      max-width: 800px;
-      color: var(--muted);
-      font-size: 0.88rem;
-      line-height: 1.6;
-    }
-
-    .dev-badge-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 4px;
-      background: #141713;
-      border: 1px solid var(--line);
-      width: fit-content;
-      margin-top: 8px;
-    }
-
-    .dev-badge-box code {
-      color: var(--yellow);
-      font-family: monospace;
-      font-size: 0.75rem;
-    }
-
-    /* RODAPÉ */
-
-    footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      padding: 24px clamp(16px, 4vw, 48px);
-      border-top: 1px solid var(--line);
-      color: #70746b;
-      font-size: 0.65rem;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    footer b {
-      color: var(--yellow);
-    }
-
-    @media (max-width: 850px) {
-      .hero-featured {
-        grid-template-columns: 1fr;
-      }
-      .crossbar-container {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      footer {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
+    .help strong { color: #85efd0; }
+    .help small { display: block; margin-top: 4px; color: #a9b8bc; }
   </style>
 </head>
+<body>
+  <div id="game"></div>
+  <div class="help">
+    <strong>Clique no chão</strong> ou use <strong>WASD / Setas</strong>.
+    <small>Vila Sweet: cada losango verde representa os 2×2 SQMs de uma casa.</small>
+  </div>
 
-<body id="inicio">
-
-  <header class="topbar">
-    <a class="mini-brand" href="#inicio">
-      <span class="mini-mark">M</span>
-      <span>MAZE LOOP</span>
-    </a>
-
-    <nav>
-      <a href="#jogos">Jogos</a>
-      <a href="#sobre">Sobre Nós</a>
-    </nav>
-  </header>
-
-  <!-- CROSSBAR DE CATEGORIAS (FILTROS) -->
-  <section class="crossbar-section">
-    <div class="crossbar-container">
-      <span class="crossbar-title">Gêneros:</span>
-      <div class="categories-grid">
-        <button type="button" class="cat-btn active" data-filter="all">TODOS</button>
-        <button type="button" class="cat-btn" data-filter="Estratégia">ESTRATÉGIA</button>
-        <button type="button" class="cat-btn" data-filter="Arcade">ARCADE</button>
-        <button type="button" class="cat-btn" data-filter="FPS">FPS</button>
-        <button type="button" class="cat-btn" data-filter="RPG">RPG</button>
-        <button type="button" class="cat-btn" data-filter="Aventura">AVENTURA</button>
-        <button type="button" class="cat-btn" data-filter="Terror">TERROR</button>
-        <button type="button" class="cat-btn" data-filter="Em dev">EM BREVE</button>
-      </div>
-    </div>
-  </section>
-
-  <main class="main-container" id="jogos">
-
-    <!-- JOGO DE DESTAQUE COM IFRAME AO VIVO -->
-    <article class="hero-featured">
-      <div class="hero-visual">
-        <iframe src="https://mazeloop.com/campo_minado_pro.html" title="Preview do Campo Minado Pro" loading="lazy"></iframe>
-        <span class="hero-badge">NOVO LANÇAMENTO</span>
-      </div>
-      <div class="hero-info">
-        <span class="hero-tag">DESTAQUE DO MÊS</span>
-        <h2>CAMPO MINADO PRO</h2>
-        <p>A versão definitiva do clássico. Teste sua lógica e paciência em um visual moderno e responsivo.</p>
-        <a class="hero-play-btn" href="https://mazeloop.com/campo_minado_pro.html">
-          <span>JOGAR AGORA</span>
-          <b>↗</b>
-        </a>
-      </div>
-    </article>
-
-    <div class="section-heading">
-      <h3>Todos os Jogos</h3>
-    </div>
-
-    <!-- GRADE NORMAL DE JOGOS -->
-    <div class="games-grid" id="grid-jogos">
-
-      <article class="game-card" data-data="2026-08-25" data-genre="Estratégia">
-        <a class="game-visual" href="https://mazeloop.com/campo_minado_pro.html">
-          <iframe src="https://mazeloop.com/campo_minado_pro.html" title="Campo Minado Pro" loading="lazy"></iframe>
-          <span class="game-number">07</span>
-          <span class="genre-pill">Estratégia</span>
-        </a>
-        <div class="game-body">
-          <div>
-            <h2>CAMPO MINADO PRO</h2>
-            <p>Teste sua lógica e paciência na versão clássica remodelada.</p>
-          </div>
-          <a class="play-button" href="https://mazeloop.com/campo_minado_pro.html">
-            <span>JOGAR AGORA</span>
-            <b>↗</b>
-          </a>
-        </div>
-      </article>
-
-      <article class="game-card" data-data="2026-08-20" data-genre="Arcade">
-        <a class="game-visual" href="https://mazeloop.com/seis-pato-velho.html">
-          <iframe src="https://mazeloop.com/seis-pato-velho.html" title="Pato Velho" loading="lazy"></iframe>
-          <span class="game-number">06</span>
-          <span class="genre-pill">Arcade</span>
-        </a>
-        <div class="game-body">
-          <div>
-            <h2>PATO VELHO</h2>
-            <p>Enfrente o desafio do Pato Velho em mais uma aventura autoral.</p>
-          </div>
-          <a class="play-button" href="https://mazeloop.com/seis-pato-velho.html">
-            <span>JOGAR AGORA</span>
-            <b>↗</b>
-          </a>
-        </div>
-      </article>
-
-      <article class="game-card" data-data="2026-05-10" data-genre="FPS">
-        <a class="game-visual" href="https://mazeloop.com/black_tactical_hd.html">
-          <iframe src="https://mazeloop.com/black_tactical_hd.html" title="BLACK RS" loading="lazy"></iframe>
-          <span class="game-number">05</span>
-          <span class="genre-pill">FPS</span>
-        </a>
-        <div class="game-body">
-          <div>
-            <h2>BLACK RS</h2>
-            <p>Entre na missão e sobreviva ao combate tático.</p>
-          </div>
-          <a class="play-button" href="https://mazeloop.com/black_tactical_hd.html">
-            <span>JOGAR AGORA</span>
-            <b>↗</b>
-          </a>
-        </div>
-      </article>
-
-      <article class="game-card" data-data="2026-04-15" data-genre="RPG">
-        <a class="game-visual" href="https://rpg.mazeloop.com">
-          <iframe src="https://rpg.mazeloop.com" title="FUSION" loading="lazy"></iframe>
-          <span class="game-number">04</span>
-          <span class="genre-pill">RPG</span>
-        </a>
-        <div class="game-body">
-          <div>
-            <h2>FUSION</h2>
-            <p>Gemas liberadas, poderes e combate em um mundo fantástico.</p>
-          </div>
-          <a class="play-button" href="https://rpg.mazeloop.com">
-            <span>JOGAR AGORA</span>
-            <b>↗</b>
-          </a>
-        </div>
-      </article>
-
-      <article class="game-card" data-data="2026-03-01" data-genre="Aventura">
-        <a class="game-visual" href="https://mazeloop.com/JOGO12.HTML">
-          <iframe src="https://mazeloop.com/JOGO12.HTML" title="LABE" loading="lazy"></iframe>
-          <span class="game-number">03</span>
-          <span class="genre-pill">Aventura</span>
-        </a>
-        <div class="game-body">
-          <div>
-            <h2>LABE</h2>
-            <p>Uma experiência isométrica autoral.</p>
-          </div>
-          <a class="play-button" href="https://mazeloop.com/JOGO12.HTML">
-            <span>JOGAR AGORA</span>
-            <b>↗</b>
-          </a>
-        </div>
-      </article>
-
-      <article class="game-card" data-data="2026-02-10" data-genre="Terror">
-        <a class="game-visual" href="https://mazeloop.com/obser">
-          <iframe src="https://mazeloop.com/obser" title="O Observatório" loading="lazy"></iframe>
-          <span class="game-number">02</span>
-          <span class="genre-pill">Terror</span>
-        </a>
-        <div class="game-body">
-          <div>
-            <h2>O Observatório</h2>
-            <p>Um pesadelo de percepção, silêncio e mistério.</p>
-          </div>
-          <a class="play-button" href="https://mazeloop.com/obser">
-            <span>JOGAR AGORA</span>
-            <b>↗</b>
-          </a>
-        </div>
-      </article>
-
-      <article class="game-card" data-data="2026-01-01" data-genre="Em dev">
-        <a class="game-visual" href="https://mazeloop.com/zelo.html">
-          <iframe src="https://mazeloop.com/zelo.html" title="Zelo" loading="lazy"></iframe>
-          <span class="game-number">01</span>
-          <span class="genre-pill">Em dev</span>
-        </a>
-        <div class="game-body">
-          <div>
-            <h2>ZELO</h2>
-            <p>Uma nova experiência Maze Loop está sendo construída.</p>
-          </div>
-          <a class="play-button" href="https://mazeloop.com/zelo.html">
-            <span>JOGAR AGORA</span>
-            <b>↗</b>
-          </a>
-        </div>
-      </article>
-
-    </div>
-  </main>
-
-  <!-- SEÇÃO SOBRE NÓS -->
-  <section class="about-strip" id="sobre">
-    <div>
-      <span class="section-kicker">ESTÚDIO INDEPENDENTE</span>
-      <h2>Sobre Nós & Desenvolvimento</h2>
-    </div>
-    
-    <p>
-      O Maze Loop é um portal autoral criado para explorar ideias, mecânicas e criar jogos diretos no navegador. 
-      Estou em constante aprendizado no mundo da programação, por isso alguns jogos ainda estão em fase de teste, ajustes ou desenvolvimento ativo.
-    </p>
-
-    <div class="dev-badge-box">
-      <code>&lt;devstatus&gt; Programador em desenvolvimento... &lt;/devstatus&gt;</code>
-    </div>
-  </section>
-
-  <!-- RODAPÉ -->
-  <footer>
-    <span>© 2026 MAZE LOOP <b>●</b> PROGRAMADOR EM DESENVOLVIMENTO</span>
-    <span>Obrigado por jogar! Divirta-se e continue explorando.</span>
-  </footer>
-
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // 1. ORDENAÇÃO DOS JOGOS POR DATA
-      const grid = document.getElementById("grid-jogos");
-      const jogos = Array.from(grid.querySelectorAll(".game-card"));
+    (() => {
+      'use strict';
 
-      jogos.sort((a, b) => new Date(b.dataset.data) - new Date(a.dataset.data));
-      jogos.forEach(jogo => grid.appendChild(jogo));
+      const TILE_W = 64;
+      const TILE_H = 32;
+      const CELL_SIZE = 64;
+      const GRID_SIZE = 28;
+      const SCREEN_SPEED = 220;
+      const ARRIVAL_DISTANCE = 5;
+      const ISO_ORIGIN_X = 0;
+      const ISO_ORIGIN_Y = -80;
 
-      // 2. FILTRO POR CATEGORIA (SEM RECARREGAR A PÁGINA)
-      const filterBtns = document.querySelectorAll(".cat-btn");
+      class IsoScene extends Phaser.Scene {
+        constructor() {
+          super('IsoScene');
+          this.player = null;
+          this.playerBody = null;
+          this.houses = [];
+          this.destination = null;
+          this.keys = null;
+          this.targetMarker = null;
+        }
 
-      filterBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-          // Destaca o botão selecionado
-          filterBtns.forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
+        preload() {
+          // Sprites externos: ficam na pasta do projeto, sem Base64.
+          this.load.image('house-timber', './assets/houses/casa-madeira.png');
+          this.load.image('house-stone', './assets/houses/casa-pedra.png');
+          this.load.image('house-bakery', './assets/houses/padaria.png');
+          this.load.image('house-herbalist', './assets/houses/herbalista.png');
+        }
 
-          const filterValue = btn.dataset.filter;
+        create() {
+          this.cameras.main.setBackgroundColor('#0b1015');
+          this.drawIsometricGrid();
+          this.drawVillagePaths();
+          this.createTextures();
 
-          // Mostra ou esconde os jogos com base no gênero
-          jogos.forEach(card => {
-            if (filterValue === "all" || card.dataset.genre === filterValue) {
-              card.style.display = "flex";
+          const playerStart = {
+            x: 14 * CELL_SIZE,
+            y: 14 * CELL_SIZE
+          };
+
+          // O corpo físico vive no mapa lógico visto de cima.
+          this.playerBody = this.physics.add.sprite(
+            playerStart.x,
+            playerStart.y,
+            'physics-body'
+          );
+          this.playerBody.setVisible(false);
+          this.playerBody.body.setSize(26, 26, true);
+          this.playerBody.setCollideWorldBounds(true);
+          this.playerBody.setDrag(0, 0);
+          this.playerBody.setMaxVelocity(1000, 1000);
+
+          // O jogador visível recebe somente a posição projetada.
+          const playerScreen = this.worldToScreen(playerStart.x, playerStart.y);
+          this.player = this.add.image(
+            playerScreen.x,
+            playerScreen.y,
+            'temporary-player'
+          );
+          this.player.setOrigin(0.5, 1.0);
+          this.player.depth = this.player.y;
+
+          this.createVillageSweet();
+
+          this.physics.world.setBounds(
+            0,
+            0,
+            GRID_SIZE * CELL_SIZE,
+            GRID_SIZE * CELL_SIZE
+          );
+
+          this.keys = this.input.keyboard.addKeys({
+            up: Phaser.Input.Keyboard.KeyCodes.W,
+            down: Phaser.Input.Keyboard.KeyCodes.S,
+            left: Phaser.Input.Keyboard.KeyCodes.A,
+            right: Phaser.Input.Keyboard.KeyCodes.D,
+            arrowUp: Phaser.Input.Keyboard.KeyCodes.UP,
+            arrowDown: Phaser.Input.Keyboard.KeyCodes.DOWN,
+            arrowLeft: Phaser.Input.Keyboard.KeyCodes.LEFT,
+            arrowRight: Phaser.Input.Keyboard.KeyCodes.RIGHT
+          });
+
+          this.targetMarker = this.add.graphics();
+          this.targetMarker.setVisible(false);
+
+          this.input.on('pointerdown', (pointer) => {
+            if (!pointer.leftButtonDown()) return;
+
+            const screenPoint = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+            const logicalPoint = this.screenToWorld(screenPoint.x, screenPoint.y);
+            logicalPoint.x = Phaser.Math.Clamp(
+              logicalPoint.x,
+              0,
+              GRID_SIZE * CELL_SIZE
+            );
+            logicalPoint.y = Phaser.Math.Clamp(
+              logicalPoint.y,
+              0,
+              GRID_SIZE * CELL_SIZE
+            );
+
+            this.destination = new Phaser.Math.Vector2(
+              logicalPoint.x,
+              logicalPoint.y
+            );
+            this.drawTargetMarker(logicalPoint.x, logicalPoint.y);
+          });
+
+          const halfMapWidth = GRID_SIZE * TILE_W / 2;
+          const mapHeight = GRID_SIZE * TILE_H;
+          this.cameras.main.setBounds(
+            -halfMapWidth - 180,
+            ISO_ORIGIN_Y - 180,
+            halfMapWidth * 2 + 360,
+            mapHeight + 360
+          );
+          this.cameras.main.startFollow(this.player, true, 0.11, 0.11);
+          this.cameras.main.setZoom(1.15);
+          this.cameras.main.centerOn(this.player.x, this.player.y);
+        }
+
+        update() {
+          const left = this.keys.left.isDown || this.keys.arrowLeft.isDown;
+          const right = this.keys.right.isDown || this.keys.arrowRight.isDown;
+          const up = this.keys.up.isDown || this.keys.arrowUp.isDown;
+          const down = this.keys.down.isDown || this.keys.arrowDown.isDown;
+          const keyboardActive = left || right || up || down;
+
+          if (keyboardActive) {
+            this.destination = null;
+            this.targetMarker.setVisible(false);
+
+            // Converte a intenção visual (cima/baixo/esquerda/direita da tela)
+            // para os dois eixos do mapa lógico.
+            const screenX = Number(right) - Number(left);
+            const screenY = Number(down) - Number(up);
+            const screenDirection = new Phaser.Math.Vector2(
+              screenX,
+              screenY
+            ).normalize();
+            const logicalVelocity = this.screenVectorToWorld(
+              screenDirection.x * SCREEN_SPEED,
+              screenDirection.y * SCREEN_SPEED
+            );
+
+            this.playerBody.body.setVelocity(
+              logicalVelocity.x,
+              logicalVelocity.y
+            );
+          } else if (this.destination) {
+            const dx = this.destination.x - this.playerBody.x;
+            const dy = this.destination.y - this.playerBody.y;
+            const screenDx = dx * (TILE_W / (2 * CELL_SIZE));
+            const screenDy = dy * (TILE_H / (2 * CELL_SIZE));
+            const screenDistance = Math.hypot(screenDx, screenDy);
+
+            if (screenDistance <= ARRIVAL_DISTANCE) {
+              this.playerBody.body.setVelocity(0, 0);
+              this.destination = null;
+              this.targetMarker.setVisible(false);
             } else {
-              card.style.display = "none";
+              this.playerBody.body.setVelocity(
+                (dx / screenDistance) * SCREEN_SPEED,
+                (dy / screenDistance) * SCREEN_SPEED
+              );
+            }
+          } else {
+            this.playerBody.body.setVelocity(0, 0);
+          }
+
+          // Somente aqui a posição lógica vira posição isométrica na tela.
+          const playerScreen = this.worldToScreen(
+            this.playerBody.x,
+            this.playerBody.y
+          );
+          this.player.setPosition(playerScreen.x, playerScreen.y);
+
+          // A profundidade do jogador continua baseada exatamente nos pés.
+          this.player.depth = this.player.y;
+          this.updateHouseDepths();
+          this.children.queueDepthSort();
+        }
+
+        updateHouseDepths() {
+          const body = this.playerBody.body;
+
+          for (const house of this.houses) {
+            const { minX, minY, width, height } = house.footprint;
+            const maxX = minX + width;
+            const maxY = minY + height;
+
+            // Mesma regra aprovada: as duas faces +X/+Y são frontais.
+            const inFront = body.left >= maxX - 0.5 || body.top >= maxY - 0.5;
+            const behind = body.right <= minX + 0.5 || body.bottom <= minY + 0.5;
+
+            let playerIsInFront;
+
+            if (inFront) {
+              playerIsInFront = true;
+            } else if (behind) {
+              playerIsInFront = false;
+            } else {
+              playerIsInFront =
+                this.playerBody.x > maxX || this.playerBody.y > maxY;
+            }
+
+            house.image.depth = playerIsInFront
+              ? Math.min(house.baseDepth, this.player.depth - 1)
+              : Math.max(house.baseDepth, this.player.depth + 1);
+          }
+        }
+
+        createVillageSweet() {
+          const villageHouses = [
+            { tileX: 6, tileY: 8, texture: 'house-timber' },
+            { tileX: 10, tileY: 8, texture: 'house-stone' },
+            { tileX: 16, tileY: 8, texture: 'house-bakery' },
+            { tileX: 20, tileY: 8, texture: 'house-herbalist' },
+            { tileX: 6, tileY: 16, texture: 'house-stone' },
+            { tileX: 10, tileY: 17, texture: 'house-timber' },
+            { tileX: 16, tileY: 17, texture: 'house-herbalist' },
+            { tileX: 20, tileY: 16, texture: 'house-bakery' }
+          ];
+
+          for (const config of villageHouses) {
+            this.createHouse({
+              ...config,
+              tilesWide: 2,
+              tilesDeep: 2
+            });
+          }
+
+          const signPoint = this.worldToScreen(5 * CELL_SIZE, 14 * CELL_SIZE);
+          const sign = this.add.text(signPoint.x, signPoint.y - 8, 'VILA SWEET', {
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: '18px',
+            fontStyle: 'bold',
+            color: '#fff4dc',
+            backgroundColor: '#7a3f52',
+            padding: { x: 10, y: 6 },
+            stroke: '#321b24',
+            strokeThickness: 3
+          });
+          sign.setOrigin(0.5, 1.0);
+          sign.setDepth(signPoint.y);
+        }
+
+        createHouse({ tileX, tileY, tilesWide, tilesDeep, texture }) {
+          const minX = tileX * CELL_SIZE;
+          const minY = tileY * CELL_SIZE;
+          const width = tilesWide * CELL_SIZE;
+          const height = tilesDeep * CELL_SIZE;
+          const centerX = minX + width / 2;
+          const centerY = minY + height / 2;
+
+          const footprint = { minX, minY, width, height };
+
+          // Bloco físico: retângulo exato de 2×2 SQMs no mundo lógico.
+          const houseBlock = this.add.zone(centerX, centerY, width, height);
+          houseBlock.setOrigin(0.5, 0.5);
+          this.physics.add.existing(houseBlock, true);
+          houseBlock.body.updateFromGameObject();
+
+          // O canto frontal do quadrado lógico vira a base do desenho.
+          const frontCorner = this.worldToScreen(minX + width, minY + height);
+          const houseImage = this.add.image(
+            frontCorner.x,
+            frontCorner.y,
+            texture
+          );
+          houseImage.setOrigin(0.5, 1.0);
+
+          // Encaixa qualquer sprite no revestimento visual aprovado sem
+          // deformar sua proporção e sem alterar os SQMs físicos.
+          const visualScale = Math.min(
+            180 / houseImage.width,
+            160 / houseImage.height
+          );
+          houseImage.setScale(visualScale);
+          houseImage.depth = frontCorner.y;
+
+          const house = {
+            block: houseBlock,
+            image: houseImage,
+            footprint,
+            baseDepth: frontCorner.y,
+            debug: null
+          };
+          this.houses.push(house);
+
+          // Repete exatamente o collider aprovado para cada nova residência.
+          this.physics.add.collider(this.playerBody, houseBlock, () => {
+            if (this.destination && this.targetMarker) {
+              this.destination = null;
+              this.targetMarker.setVisible(false);
             }
           });
-        });
-      });
-    });
-  </script>
 
+          // Debug projetado: o retângulo lógico aparece como losango perfeito.
+          house.debug = this.drawProjectedFootprint(footprint);
+        }
+
+        createTextures() {
+          const bodyTexture = this.textures.createCanvas('physics-body', 26, 26);
+          bodyTexture.getContext().clearRect(0, 0, 26, 26);
+          bodyTexture.refresh();
+
+          const playerTexture = this.textures.createCanvas(
+            'temporary-player',
+            32,
+            64
+          );
+          const playerCtx = playerTexture.getContext();
+          playerCtx.fillStyle = '#43d9b2';
+          playerCtx.fillRect(0, 10, 32, 54);
+          playerCtx.fillStyle = '#b8fff0';
+          playerCtx.beginPath();
+          playerCtx.moveTo(16, 0);
+          playerCtx.lineTo(5, 15);
+          playerCtx.lineTo(27, 15);
+          playerCtx.closePath();
+          playerCtx.fill();
+          playerCtx.strokeStyle = '#153a38';
+          playerCtx.lineWidth = 2;
+          playerCtx.strokeRect(1, 11, 30, 52);
+          playerTexture.refresh();
+        }
+
+        worldToScreen(worldX, worldY) {
+          return new Phaser.Math.Vector2(
+            ISO_ORIGIN_X + (worldX - worldY) * (TILE_W / (2 * CELL_SIZE)),
+            ISO_ORIGIN_Y + (worldX + worldY) * (TILE_H / (2 * CELL_SIZE))
+          );
+        }
+
+        screenToWorld(screenX, screenY) {
+          const projectedX = screenX - ISO_ORIGIN_X;
+          const projectedY = screenY - ISO_ORIGIN_Y;
+          const difference = projectedX / (TILE_W / (2 * CELL_SIZE));
+          const sum = projectedY / (TILE_H / (2 * CELL_SIZE));
+
+          return new Phaser.Math.Vector2(
+            (sum + difference) / 2,
+            (sum - difference) / 2
+          );
+        }
+
+        screenVectorToWorld(screenX, screenY) {
+          const difference = screenX / (TILE_W / (2 * CELL_SIZE));
+          const sum = screenY / (TILE_H / (2 * CELL_SIZE));
+
+          return new Phaser.Math.Vector2(
+            (sum + difference) / 2,
+            (sum - difference) / 2
+          );
+        }
+
+        drawIsometricGrid() {
+          const grid = this.add.graphics();
+
+          for (let row = 0; row < GRID_SIZE; row++) {
+            for (let col = 0; col < GRID_SIZE; col++) {
+              const minX = col * CELL_SIZE;
+              const minY = row * CELL_SIZE;
+              const top = this.worldToScreen(minX, minY);
+              const right = this.worldToScreen(minX + CELL_SIZE, minY);
+              const bottom = this.worldToScreen(
+                minX + CELL_SIZE,
+                minY + CELL_SIZE
+              );
+              const left = this.worldToScreen(minX, minY + CELL_SIZE);
+              const alternating = (row + col) % 2 === 0;
+
+              grid.fillStyle(alternating ? 0x182b2a : 0x142523, 1);
+              grid.lineStyle(1, 0x31504b, 0.8);
+              grid.beginPath();
+              grid.moveTo(top.x, top.y);
+              grid.lineTo(right.x, right.y);
+              grid.lineTo(bottom.x, bottom.y);
+              grid.lineTo(left.x, left.y);
+              grid.closePath();
+              grid.fillPath();
+              grid.strokePath();
+            }
+          }
+
+          grid.setDepth(-100000);
+        }
+
+        drawVillagePaths() {
+          const paths = this.add.graphics();
+          const roadTiles = new Set();
+
+          // Duas ruas de 2 SQMs se cruzam na praça central.
+          for (let tile = 4; tile <= 23; tile++) {
+            roadTiles.add(`${tile},13`);
+            roadTiles.add(`${tile},14`);
+            roadTiles.add(`13,${tile}`);
+            roadTiles.add(`14,${tile}`);
+          }
+
+          for (let row = 12; row <= 15; row++) {
+            for (let col = 12; col <= 15; col++) {
+              roadTiles.add(`${col},${row}`);
+            }
+          }
+
+          for (const tile of roadTiles) {
+            const [col, row] = tile.split(',').map(Number);
+            const minX = col * CELL_SIZE;
+            const minY = row * CELL_SIZE;
+            const top = this.worldToScreen(minX, minY);
+            const right = this.worldToScreen(minX + CELL_SIZE, minY);
+            const bottom = this.worldToScreen(minX + CELL_SIZE, minY + CELL_SIZE);
+            const left = this.worldToScreen(minX, minY + CELL_SIZE);
+
+            paths.fillStyle(0x765e49, 0.92);
+            paths.lineStyle(1, 0xa98a67, 0.55);
+            paths.beginPath();
+            paths.moveTo(top.x, top.y);
+            paths.lineTo(right.x, right.y);
+            paths.lineTo(bottom.x, bottom.y);
+            paths.lineTo(left.x, left.y);
+            paths.closePath();
+            paths.fillPath();
+            paths.strokePath();
+          }
+
+          paths.setDepth(-99999);
+        }
+
+        drawProjectedFootprint(footprint) {
+          const { minX, minY, width, height } = footprint;
+          const top = this.worldToScreen(minX, minY);
+          const right = this.worldToScreen(minX + width, minY);
+          const bottom = this.worldToScreen(minX + width, minY + height);
+          const left = this.worldToScreen(minX, minY + height);
+
+          const footprintDebug = this.add.graphics();
+          footprintDebug.fillStyle(0x00ff66, 0.08);
+          footprintDebug.lineStyle(2, 0x00ff66, 0.9);
+          footprintDebug.beginPath();
+          footprintDebug.moveTo(top.x, top.y);
+          footprintDebug.lineTo(right.x, right.y);
+          footprintDebug.lineTo(bottom.x, bottom.y);
+          footprintDebug.lineTo(left.x, left.y);
+          footprintDebug.closePath();
+          footprintDebug.fillPath();
+          footprintDebug.strokePath();
+          footprintDebug.setDepth(1000000);
+          return footprintDebug;
+        }
+
+        drawTargetMarker(worldX, worldY) {
+          const point = this.worldToScreen(worldX, worldY);
+          this.targetMarker.clear();
+          this.targetMarker.lineStyle(2, 0xffd166, 0.95);
+          this.targetMarker.strokeEllipse(point.x, point.y, 24, 12);
+          this.targetMarker.lineBetween(
+            point.x - 8,
+            point.y,
+            point.x + 8,
+            point.y
+          );
+          this.targetMarker.lineBetween(
+            point.x,
+            point.y - 4,
+            point.x,
+            point.y + 4
+          );
+          this.targetMarker.setDepth(point.y + 1);
+          this.targetMarker.setVisible(true);
+        }
+      }
+
+      const game = new Phaser.Game({
+        type: Phaser.AUTO,
+        parent: 'game',
+        backgroundColor: '#0b1015',
+        scale: {
+          mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+          width: window.innerWidth,
+          height: window.innerHeight
+        },
+        physics: {
+          default: 'arcade',
+          arcade: {
+            gravity: { x: 0, y: 0 },
+            debug: false
+          }
+        },
+        scene: IsoScene
+      });
+
+      window.addEventListener('resize', () => {
+        game.scale.resize(window.innerWidth, window.innerHeight);
+      });
+    })();
+  </script>
 </body>
 </html>
