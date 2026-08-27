@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080908">
+  <meta name="description" content="MazeLoop — desafios rápidos, jogos de reflexo, precisão e memória direto no navegador.">
+  <title>MazeLoop — Desafios Rápidos</title>
+
+  <!-- MONETAG: preservado do seu index original -->
+  <script src="https://quge5.com/88/tag.min.js" data-zone="272964" async data-cfasync="false"></script>
+
+  <style>
+    :root{--bg:#080908;--panel:#111412;--panel2:#171b18;--yellow:#ffd21c;--text:#f7f7f2;--muted:#9ca49f;--green:#38e681;--red:#ff5468;--border:rgba(255,255,255,.08)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 50% -10%,rgba(255,210,28,.16),transparent 34rem),linear-gradient(#080908,#090b09);overflow-x:hidden}
+    button{font:inherit}
+    header{padding:38px 18px 26px;text-align:center}
+    .brand{font-size:clamp(2.3rem,7vw,5.2rem);font-weight:1000;line-height:.95;color:var(--yellow);letter-spacing:-.07em;text-shadow:0 0 38px rgba(255,210,28,.15)}
+    .brand span{display:inline-block;margin-left:10px;padding:5px 8px;border-radius:6px;background:var(--yellow);color:#080908;font-size:.7rem;letter-spacing:.18em;vertical-align:top;transform:translateY(5px)}
+    .tagline{margin:15px auto 0;max-width:620px;color:#c8cec9;font-size:.93rem}
+    .topbar{width:min(1120px,calc(100% - 24px));margin:0 auto 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border);background:rgba(17,20,18,.88);border-radius:14px}
+    .topbar strong{font-size:.86rem}.topbar small{color:var(--muted)}
+    .container{width:min(1120px,calc(100% - 24px));margin:auto;padding-bottom:50px}
+    .hero{position:relative;overflow:hidden;padding:28px;margin-bottom:22px;border:1px solid rgba(255,210,28,.25);border-radius:22px;background:radial-gradient(circle at 80% 30%,rgba(255,210,28,.13),transparent 18rem),linear-gradient(145deg,#17190f,#0f1210)}
+    .hero::after{content:"DAILY";position:absolute;right:22px;top:18px;font-size:clamp(3rem,11vw,8rem);font-weight:1000;color:rgba(255,210,28,.035);pointer-events:none}
+    .eyebrow{display:inline-block;margin-bottom:10px;color:var(--yellow);font-size:.72rem;font-weight:900;letter-spacing:.17em;text-transform:uppercase}
+    .hero h2{max-width:600px;font-size:clamp(1.7rem,4vw,2.8rem);line-height:1.05;letter-spacing:-.045em}
+    .hero p{max-width:560px;margin:12px 0 20px;color:var(--muted)}
+    .btn{border:0;border-radius:10px;padding:12px 18px;cursor:pointer;font-weight:900;transition:.18s ease}.btn:hover{transform:translateY(-2px)}.btn-primary{background:var(--yellow);color:#080908}
+    .section-title{display:flex;align-items:end;justify-content:space-between;gap:15px;margin:30px 2px 14px}.section-title h2{font-size:1.15rem;letter-spacing:-.02em}.section-title p{color:var(--muted);font-size:.78rem}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .game{min-height:275px;position:relative;overflow:hidden;border:1px solid var(--border);border-radius:18px;background:linear-gradient(160deg,#171b18,#0e100f);box-shadow:0 20px 45px rgba(0,0,0,.2)}
+    .game-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px 12px;border-bottom:1px solid var(--border)}.game-head h3{font-size:1rem}
+    .badge{padding:4px 7px;border-radius:7px;color:var(--yellow);background:rgba(255,210,28,.08);border:1px solid rgba(255,210,28,.18);font-size:.66rem;font-weight:900;letter-spacing:.08em}
+    .game-body{padding:18px}.game-desc{min-height:42px;color:var(--muted);font-size:.83rem;margin-bottom:15px}.result{min-height:26px;margin-top:11px;font-weight:850;font-size:.87rem}
+    #reactionArea{height:120px;display:grid;place-items:center;border-radius:13px;user-select:none;cursor:pointer;background:#232825;border:1px solid var(--border);font-weight:900;text-align:center;padding:10px;transition:background .08s ease}#reactionArea.ready{background:#1b8f50}#reactionArea.tooSoon{background:#8d2835}
+    #aimArea{height:150px;position:relative;overflow:hidden;border-radius:13px;border:1px solid var(--border);background:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),#0b0e0c;background-size:24px 24px}
+    #target{position:absolute;width:38px;height:38px;border-radius:50%;border:8px solid var(--yellow);background:#fff;box-shadow:0 0 20px rgba(255,210,28,.28);cursor:pointer;display:none}
+    .memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.memory-btn{aspect-ratio:1;border:1px solid var(--border);border-radius:11px;background:#242925;color:#242925;cursor:pointer;font-weight:1000;font-size:1.25rem}.memory-btn.show,.memory-btn.correct{color:#080908;background:var(--yellow)}.memory-btn.wrong{background:var(--red);color:#fff}
+    .click-box{display:flex;align-items:center;gap:10px;margin-top:8px}#clickButton{flex:1;min-height:94px;border:1px solid rgba(255,210,28,.3);border-radius:13px;background:linear-gradient(145deg,#28250f,#17190f);color:var(--yellow);cursor:pointer;font-size:1.05rem;font-weight:1000}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;min-width:130px}.stat{padding:11px;text-align:center;border-radius:11px;background:#0d0f0e;border:1px solid var(--border)}.stat b{display:block;font-size:1.1rem}.stat small{color:var(--muted);font-size:.65rem}
+    .ad-space{margin:25px 0 6px;padding:16px;text-align:center;color:#656c67;border:1px dashed rgba(255,255,255,.09);border-radius:13px;font-size:.72rem}
+    footer{padding:25px 12px 35px;text-align:center;color:#656c67;font-size:.75rem}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}.hero{padding:22px 18px}.topbar{align-items:flex-start;flex-direction:column}.game{min-height:auto}}
+  </style>
+</head>
+<body>
+<header><h1 class="brand">MAZE LOOP <span>PLAY</span></h1><p class="tagline">Desafios rápidos. Sem cadastro. Entre, jogue, bata seu recorde.</p></header>
+<div class="topbar"><div><strong>⚡ MazeLoop Quick Games</strong><br><small>Experiências curtas direto no navegador</small></div><small id="todayText"></small></div>
+<main class="container">
+  <section class="hero"><span class="eyebrow">🔥 Destaque de hoje</span><h2>Você consegue reagir em menos de 200 ms?</h2><p>Espere a tela ficar verde e clique o mais rápido possível. Parece fácil até você tentar bater seu próprio recorde.</p><button class="btn btn-primary" onclick="scrollToGame('reactionGame')">JOGAR AGORA</button></section>
+  <div class="section-title"><div><h2>Jogos rápidos</h2><p>Uma mecânica. Um objetivo. Tente de novo.</p></div></div>
+  <section class="grid">
+    <article class="game" id="reactionGame"><div class="game-head"><h3>⚡ Teste de Reflexo</h3><span class="badge">REFLEX</span></div><div class="game-body"><p class="game-desc">Clique em iniciar. Quando a área ficar verde, clique nela imediatamente.</p><button class="btn btn-primary" id="reactionStart">INICIAR</button><div id="reactionArea">Clique em INICIAR</div><div class="result" id="reactionResult"></div></div></article>
+    <article class="game"><div class="game-head"><h3>🎯 Precisão</h3><span class="badge">AIM</span></div><div class="game-body"><p class="game-desc">Acerte 10 alvos o mais rápido que conseguir.</p><button class="btn btn-primary" id="aimStart">COMEÇAR</button><div id="aimArea"><button id="target" aria-label="Alvo"></button></div><div class="result" id="aimResult"></div></div></article>
+    <article class="game"><div class="game-head"><h3>🧠 Memória Relâmpago</h3><span class="badge">MEMORY</span></div><div class="game-body"><p class="game-desc">Memorize os quadrados amarelos. Depois clique exatamente nos mesmos.</p><button class="btn btn-primary" id="memoryStart">NOVO DESAFIO</button><div class="memory-grid" id="memoryGrid"></div><div class="result" id="memoryResult"></div></div></article>
+    <article class="game"><div class="game-head"><h3>🔥 Click Rush</h3><span class="badge">10 SEC</span></div><div class="game-body"><p class="game-desc">Quantos cliques você consegue fazer em 10 segundos?</p><button class="btn btn-primary" id="rushStart">INICIAR CONTAGEM</button><div class="click-box"><button id="clickButton" disabled>CLIQUE!</button><div class="stats"><div class="stat"><b id="clickCount">0</b><small>CLIQUES</small></div><div class="stat"><b id="timeLeft">10</b><small>SEGUNDOS</small></div></div></div><div class="result" id="rushResult"></div></div></article>
+  </section>
+  <div class="ad-space">ESPAÇO NATURAL PARA PUBLICIDADE / MONETIZAÇÃO</div>
+</main>
+<footer>© 2026 MazeLoop — jogos e experiências interativas no navegador.</footer>
+<script>
+  document.getElementById("todayText").textContent=new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
+  function scrollToGame(id){document.getElementById(id).scrollIntoView({behavior:"smooth",block:"center"});}
+  const reactionStart=document.getElementById("reactionStart"),reactionArea=document.getElementById("reactionArea"),reactionResult=document.getElementById("reactionResult");let reactionTimer=null,reactionStartedAt=0,reactionState="idle",reactionBest=Number(localStorage.getItem("mazeloop_reflex_best"))||null;
+  reactionStart.addEventListener("click",()=>{clearTimeout(reactionTimer);reactionState="waiting";reactionArea.className="";reactionArea.textContent="ESPERE...";reactionResult.textContent="";reactionStart.disabled=true;reactionTimer=setTimeout(()=>{reactionState="ready";reactionStartedAt=performance.now();reactionArea.className="ready";reactionArea.textContent="CLIQUE!"},1200+Math.random()*2800)});
+  reactionArea.addEventListener("click",()=>{if(reactionState==="waiting"){clearTimeout(reactionTimer);reactionState="idle";reactionArea.className="tooSoon";reactionArea.textContent="CEDO DEMAIS 😅";reactionResult.innerHTML='<span class="red">Você queimou a largada.</span>';reactionStart.disabled=false;return}if(reactionState==="ready"){const ms=Math.round(performance.now()-reactionStartedAt);reactionState="idle";reactionArea.className="";reactionArea.textContent=`${ms} ms`;if(!reactionBest||ms<reactionBest){reactionBest=ms;localStorage.setItem("mazeloop_reflex_best",ms);reactionResult.innerHTML=`<span class="green">NOVO RECORDE: ${ms} ms 🔥</span>`}else{reactionResult.innerHTML=`Resultado: <span class="yellow">${ms} ms</span> · Recorde: ${reactionBest} ms`}reactionStart.disabled=false}});
+  const aimArea=document.getElementById("aimArea"),aimStart=document.getElementById("aimStart"),target=document.getElementById("target"),aimResult=document.getElementById("aimResult");let aimHits=0,aimStarted=0;function moveTarget(){const maxX=aimArea.clientWidth-42,maxY=aimArea.clientHeight-42;target.style.left=Math.max(2,Math.random()*maxX)+"px";target.style.top=Math.max(2,Math.random()*maxY)+"px"}aimStart.addEventListener("click",()=>{aimHits=0;aimStarted=performance.now();aimResult.textContent="Alvos: 0/10";aimStart.disabled=true;target.style.display="block";moveTarget()});target.addEventListener("click",e=>{e.stopPropagation();aimHits++;if(aimHits>=10){const seconds=((performance.now()-aimStarted)/1000).toFixed(2);target.style.display="none";aimResult.innerHTML=`<span class="green">10/10 em ${seconds}s 🎯</span>`;aimStart.disabled=false}else{aimResult.textContent=`Alvos: ${aimHits}/10`;moveTarget()}});
+  const memoryGrid=document.getElementById("memoryGrid"),memoryStart=document.getElementById("memoryStart"),memoryResult=document.getElementById("memoryResult");let memoryTargets=[],memoryFound=[],memoryPlayable=false;for(let i=0;i<12;i++){const b=document.createElement("button");b.className="memory-btn";b.dataset.index=i;b.textContent="●";memoryGrid.appendChild(b)}memoryStart.addEventListener("click",()=>{const buttons=[...document.querySelectorAll(".memory-btn")];buttons.forEach(b=>b.className="memory-btn");memoryTargets=[];memoryFound=[];memoryPlayable=false;memoryResult.textContent="Memorize...";while(memoryTargets.length<4){const n=Math.floor(Math.random()*12);if(!memoryTargets.includes(n))memoryTargets.push(n)}memoryTargets.forEach(i=>buttons[i].classList.add("show"));memoryStart.disabled=true;setTimeout(()=>{buttons.forEach(b=>b.className="memory-btn");memoryPlayable=true;memoryResult.textContent="Agora encontre os 4 quadrados."},1600)});memoryGrid.addEventListener("click",e=>{const b=e.target.closest(".memory-btn");if(!b||!memoryPlayable)return;const i=Number(b.dataset.index);if(memoryFound.includes(i))return;if(memoryTargets.includes(i)){memoryFound.push(i);b.classList.add("correct");if(memoryFound.length===memoryTargets.length){memoryPlayable=false;memoryResult.innerHTML='<span class="green">PERFEITO! 4/4 🧠</span>';memoryStart.disabled=false}}else{b.classList.add("wrong");memoryPlayable=false;memoryResult.innerHTML='<span class="red">Errou! Tente novamente.</span>';memoryStart.disabled=false;setTimeout(()=>{document.querySelectorAll(".memory-btn").forEach((btn,idx)=>{if(memoryTargets.includes(idx))btn.classList.add("show")})},300)}});
+  const rushStart=document.getElementById("rushStart"),clickButton=document.getElementById("clickButton"),clickCount=document.getElementById("clickCount"),timeLeft=document.getElementById("timeLeft"),rushResult=document.getElementById("rushResult");let clicks=0,rushActive=false,rushInterval=null;rushStart.addEventListener("click",()=>{clearInterval(rushInterval);clicks=0;rushActive=true;let remaining=10;clickCount.textContent="0";timeLeft.textContent="10";rushResult.textContent="";rushStart.disabled=true;clickButton.disabled=false;rushInterval=setInterval(()=>{remaining--;timeLeft.textContent=remaining;if(remaining<=0){clearInterval(rushInterval);rushActive=false;clickButton.disabled=true;rushStart.disabled=false;const best=Number(localStorage.getItem("mazeloop_click_best"))||0;if(clicks>best){localStorage.setItem("mazeloop_click_best",clicks);rushResult.innerHTML=`<span class="green">NOVO RECORDE: ${clicks} cliques 🔥</span>`}else{rushResult.innerHTML=`Você fez <span class="yellow">${clicks}</span> cliques · Recorde: ${best}`}}},1000)});clickButton.addEventListener("click",()=>{if(!rushActive)return;clicks++;clickCount.textContent=clicks});
+</script>
+</body>
+</html>
