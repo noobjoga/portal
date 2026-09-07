@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>Laboratório Social — Feed</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#0b0d10;color:#f5f7fa}.top{position:sticky;top:0;background:rgba(13,16,20,.92);backdrop-filter:blur(10px);border-bottom:1px solid #20262d}.nav{max-width:980px;margin:auto;padding:16px 18px;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:1000}.brand span{color:#ffd21c}.nav a{color:#dbe2ea;text-decoration:none;font-weight:700}.layout{max-width:980px;margin:28px auto;padding:0 18px;display:grid;grid-template-columns:1fr 280px;gap:20px}.card{background:#13171c;border:1px solid #242b33;border-radius:18px}.composer{padding:18px}.composer textarea{width:100%;min-height:110px;resize:vertical;background:#0e1216;border:1px solid #2b333d;border-radius:14px;color:white;padding:14px;outline:none}.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px}.who{color:#8d98a6;font-size:13px}.btn{border:0;border-radius:11px;padding:11px 18px;background:#ffd21c;color:#111;font-weight:900;cursor:pointer}.feed{margin-top:14px}.post{padding:18px;border-bottom:1px solid #242b33}.post:last-child{border-bottom:0}.meta{font-size:13px;color:#8c97a5;margin-bottom:9px}.text{font-size:17px;line-height:1.45}.sidebar{padding:20px}.sidebar h3{margin-top:0}.sidebar p{color:#8d98a6;font-size:14px;line-height:1.5}.side-link{display:block;margin-top:12px;padding:11px 13px;border-radius:10px;border:1px solid #2b333d;color:#e1e7ee;text-decoration:none}.empty{padding:22px;color:#76818e}@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{order:-1}}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#0b0d10;color:#f5f7fa}.top{position:sticky;top:0;background:rgba(13,16,20,.92);backdrop-filter:blur(10px);border-bottom:1px solid #20262d}.nav{max-width:980px;margin:auto;padding:16px 18px;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:1000}.brand span{color:#ffd21c}.nav a{color:#dbe2ea;text-decoration:none;font-weight:700}.layout{max-width:980px;margin:28px auto;padding:0 18px;display:grid;grid-template-columns:1fr 280px;gap:20px}.card{background:#13171c;border:1px solid #242b33;border-radius:18px}.composer{padding:18px}.composer textarea{width:100%;min-height:110px;resize:vertical;background:#0e1216;border:1px solid #2b333d;border-radius:14px;color:white;padding:14px;outline:none}.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px}.who{color:#8d98a6;font-size:13px}.btn{border:0;border-radius:11px;padding:11px 18px;background:#ffd21c;color:#111;font-weight:900;cursor:pointer}.btn:disabled{opacity:.55;cursor:not-allowed}.feed{margin-top:14px}.post{padding:18px;border-bottom:1px solid #242b33}.post:last-child{border-bottom:0}.meta{font-size:13px;color:#8c97a5;margin-bottom:9px}.text{font-size:17px;line-height:1.45}.sidebar{padding:20px}.sidebar h3{margin-top:0}.sidebar p{color:#8d98a6;font-size:14px;line-height:1.5}.side-link{display:block;margin-top:12px;padding:11px 13px;border-radius:10px;border:1px solid #2b333d;color:#e1e7ee;text-decoration:none}.empty,.status{padding:22px;color:#76818e}.status.error{color:#ff8c8c}@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{order:-1}}
   </style>
 </head>
 <body>
@@ -15,37 +15,88 @@
     <section>
       <div class="card composer">
         <textarea id="texto" placeholder="No que você está pensando?"></textarea>
-        <div class="row"><div class="who" id="who">Publicando como @rafa</div><button class="btn" onclick="postar()">POSTAR</button></div>
+        <div class="row"><div class="who" id="who">Publicando como @rafa</div><button class="btn" id="btnPostar" onclick="postar()">POSTAR</button></div>
       </div>
-      <div class="card feed" id="feed"></div>
+      <div class="card feed" id="feed"><div class="status">Carregando posts...</div></div>
     </section>
     <aside class="card sidebar">
       <h3>Laboratório</h3>
-      <p>Protótipo isolado do site principal. Os dados ficam apenas no seu navegador por enquanto.</p>
+      <p>Protótipo isolado do site principal. Agora os posts são salvos no Supabase e podem aparecer em outros navegadores.</p>
       <a class="side-link" href="criar-perfil.html">Criar / editar perfil</a>
       <a class="side-link" href="perfil.html">Abrir meu perfil</a>
     </aside>
   </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const SUPABASE_URL='https://qzeeltqjluhsdugfywfw.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY='sb_publishable_k-9xYlvdebmOQao_QkxCCg_-vdToqK8';
+    const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
     const usuario=localStorage.getItem('lab_usuario')||'@rafa';
     const nome=localStorage.getItem('lab_nome')||'Rafa';
     document.getElementById('who').textContent='Publicando como '+usuario;
-    function carregar(){
-      const posts=JSON.parse(localStorage.getItem('lab_posts')||'[]');
-      const feed=document.getElementById('feed');feed.innerHTML='';
-      if(posts.length===0){feed.innerHTML='<div class="empty">Nenhum post ainda. Escreva a primeira opinião acima.</div>';return;}
-      posts.slice().reverse().forEach(p=>{
+
+    function formatarData(valor){
+      if(!valor)return'';
+      try{return new Date(valor).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});}catch{return'';}
+    }
+
+    async function carregar(){
+      const feed=document.getElementById('feed');
+      feed.innerHTML='<div class="status">Carregando posts...</div>';
+
+      const {data,error}=await db
+        .from('posts')
+        .select('id,texto,autor,created_at')
+        .order('created_at',{ascending:false});
+
+      if(error){
+        console.error(error);
+        feed.innerHTML='<div class="status error">Não foi possível carregar os posts. Verifique as policies do Supabase.</div>';
+        return;
+      }
+
+      feed.innerHTML='';
+      if(!data||data.length===0){
+        feed.innerHTML='<div class="empty">Nenhum post ainda. Escreva a primeira opinião acima.</div>';
+        return;
+      }
+
+      data.forEach(p=>{
         const div=document.createElement('article');div.className='post';
-        const meta=document.createElement('div');meta.className='meta';meta.textContent=(p.name||nome)+' '+(p.user||usuario)+' · agora';
-        const text=document.createElement('div');text.className='text';text.textContent=p.text;
+        const meta=document.createElement('div');meta.className='meta';
+        meta.textContent=(p.autor||'@anonimo')+(p.created_at?' · '+formatarData(p.created_at):'');
+        const text=document.createElement('div');text.className='text';text.textContent=p.texto||'';
         div.append(meta,text);feed.appendChild(div);
       });
     }
-    function postar(){
-      const campo=document.getElementById('texto');const text=campo.value.trim();if(!text)return;
-      const posts=JSON.parse(localStorage.getItem('lab_posts')||'[]');posts.push({name:nome,user:usuario,text});
-      localStorage.setItem('lab_posts',JSON.stringify(posts));campo.value='';carregar();
+
+    async function postar(){
+      const campo=document.getElementById('texto');
+      const botao=document.getElementById('btnPostar');
+      const text=campo.value.trim();
+      if(!text)return;
+
+      botao.disabled=true;
+      botao.textContent='POSTANDO...';
+
+      const autor=(nome+' '+usuario).trim();
+      const {error}=await db.from('posts').insert({texto:text,autor});
+
+      botao.disabled=false;
+      botao.textContent='POSTAR';
+
+      if(error){
+        console.error(error);
+        alert('Não foi possível publicar. Verifique a policy de INSERT no Supabase.');
+        return;
+      }
+
+      campo.value='';
+      await carregar();
     }
+
     carregar();
   </script>
 </body>
