@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Laboratório Social — Perfil</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#0b0d10;color:#f5f7fa}.top{border-bottom:1px solid #20262d;background:#0d1014}.nav{max-width:760px;margin:auto;padding:16px 18px;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:900}.brand span{color:#ffd21c}.nav a{color:#d6dde6;text-decoration:none}.wrap{max-width:760px;margin:30px auto;padding:0 18px}.profile{background:#13171c;border:1px solid #242b33;border-radius:22px;overflow:hidden}.cover{height:180px;background:linear-gradient(135deg,#242b33,#11161b)}.content{padding:0 24px 24px}.avatar{width:112px;height:112px;border-radius:50%;background:#ffd21c;color:#111;display:grid;place-items:center;font-size:34px;font-weight:1000;border:6px solid #13171c;margin-top:-56px}.name{font-size:28px;font-weight:900;margin-top:12px}.user{color:#7f8a97}.bio{margin-top:14px;color:#c7ced7}.stats{display:flex;gap:28px;margin-top:22px}.stat strong{display:block;font-size:20px}.stat span{font-size:12px;color:#8e99a7}.actions{display:flex;gap:10px;margin-top:22px}.btn{padding:11px 16px;border-radius:11px;text-decoration:none;font-weight:800}.primary{background:#ffd21c;color:#111}.secondary{border:1px solid #2b333d;color:#dce3eb}.posts{margin-top:22px}.post{background:#13171c;border:1px solid #242b33;border-radius:16px;padding:18px;margin-top:12px}.post .meta{font-size:12px;color:#7e8996;margin-bottom:8px}.empty{color:#76818e;font-size:14px}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="nav"><div class="brand">MAZE <span>SOCIAL LAB</span></div><a href="index.html">Feed</a></div></header>
+  <main class="wrap">
+    <section class="profile">
+      <div class="cover"></div>
+      <div class="content">
+        <div class="avatar" id="avatar">R</div>
+        <div class="name" id="nome">Rafa</div>
+        <div class="user" id="usuario">@rafa</div>
+        <div class="bio" id="bio">Construindo ideias e aprendendo programação.</div>
+        <div class="stats">
+          <div class="stat"><strong id="seguidores">128</strong><span>Seguidores</span></div>
+          <div class="stat"><strong>84</strong><span>Seguindo</span></div>
+          <div class="stat"><strong id="postsCount">2</strong><span>Posts</span></div>
+        </div>
+        <div class="actions"><a class="btn primary" href="criar-perfil.html">Editar perfil</a><a class="btn secondary" href="index.html">Ver feed</a></div>
+      </div>
+    </section>
+    <section class="posts" id="posts"></section>
+  </main>
+  <script>
+    const nome=localStorage.getItem('lab_nome')||'Rafa';
+    const usuario=localStorage.getItem('lab_usuario')||'@rafa';
+    const bio=localStorage.getItem('lab_bio')||'Construindo ideias e aprendendo programação.';
+    document.getElementById('nome').textContent=nome;
+    document.getElementById('usuario').textContent=usuario;
+    document.getElementById('bio').textContent=bio;
+    document.getElementById('avatar').textContent=(nome[0]||'R').toUpperCase();
+    const posts=JSON.parse(localStorage.getItem('lab_posts')||'[]');
+    const own=posts.filter(p=>p.user===usuario);
+    document.getElementById('postsCount').textContent=own.length;
+    const area=document.getElementById('posts');
+    if(own.length===0){area.innerHTML='<div class="empty">Nenhum post ainda. Vá ao feed e publique alguma coisa.</div>'}
+    else{own.slice().reverse().forEach(p=>{const div=document.createElement('div');div.className='post';div.innerHTML='<div class="meta">'+usuario+' · agora</div><div></div>';div.lastElementChild.textContent=p.text;area.appendChild(div);});}
+  </script>
+</body>
+</html>
