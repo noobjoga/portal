@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Laboratório Social — Criar perfil</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#0b0d10;color:#f5f7fa}.shell{max-width:560px;margin:60px auto;padding:0 18px}.card{background:#13171c;border:1px solid #242b33;border-radius:22px;padding:28px;box-shadow:0 20px 70px rgba(0,0,0,.35)}h1{margin:0 0 8px;font-size:32px}.muted{color:#8d98a6;margin-bottom:24px}.field{margin:14px 0}label{display:block;font-size:13px;color:#aab4c0;margin-bottom:7px}input,textarea{width:100%;background:#0e1216;border:1px solid #2b333d;color:white;padding:13px 14px;border-radius:12px;outline:none}textarea{min-height:90px;resize:vertical}.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;background:#ffd21c;color:#111;font-weight:900;cursor:pointer;margin-top:20px}.back{display:inline-block;margin-top:18px;color:#9eabb9;text-decoration:none}.note{font-size:12px;color:#697482;margin-top:18px}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="card">
+      <h1>Criar perfil</h1>
+      <div class="muted">Protótipo visual. Nada aqui é salvo ainda.</div>
+      <div class="field"><label>Nome</label><input id="nome" placeholder="Seu nome"></div>
+      <div class="field"><label>@usuário</label><input id="usuario" placeholder="@seunome"></div>
+      <div class="field"><label>Bio</label><textarea id="bio" placeholder="Fale um pouco sobre você"></textarea></div>
+      <button class="btn" onclick="criar()">CRIAR PERFIL DE TESTE</button>
+      <a class="back" href="index.html">← Voltar ao feed</a>
+      <div class="note">Página de laboratório: noindex, não listada no site principal.</div>
+    </section>
+  </main>
+  <script>
+    function criar(){
+      const nome=document.getElementById('nome').value.trim()||'Rafa';
+      const usuario=document.getElementById('usuario').value.trim()||'@rafa';
+      const bio=document.getElementById('bio').value.trim()||'Construindo ideias e aprendendo programação.';
+      localStorage.setItem('lab_nome',nome);
+      localStorage.setItem('lab_usuario',usuario.startsWith('@')?usuario:'@'+usuario);
+      localStorage.setItem('lab_bio',bio);
+      location.href='perfil.html';
+    }
+  </script>
+</body>
+</html>
