@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101014">
+<title>Entrar ou criar conta — Maze Loop</title>
+<style>
+:root{--bg:#101014;--panel:#19191f;--line:#34313b;--text:#f5f3f7;--muted:#aaa5b1;--pink:#ff557e;--orange:#ff9861;--mint:#9ce7d2}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% 0,#30202a 0,transparent 38%),var(--bg);color:var(--text);font:15px 'DM Sans',Arial,sans-serif;display:grid;place-items:center;padding:24px}
+.shell{width:min(100%,460px)}.brand{display:flex;align-items:center;gap:11px;margin-bottom:28px}.logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--orange));display:grid;place-items:center;color:#20151c;font-weight:900;font-size:22px}.brand strong{font:800 22px Manrope,Arial;letter-spacing:-.8px}.brand span{color:#ff7891}
+.card{background:#19191f;border:1px solid var(--line);border-radius:22px;padding:clamp(22px,6vw,32px);box-shadow:0 24px 70px #0005}h1{font:800 clamp(26px,6vw,34px) Manrope,Arial;letter-spacing:-1px;margin:0 0 8px}.intro{color:var(--muted);line-height:1.6;margin:0 0 22px;font-size:13px}.tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:#111116;border-radius:12px;margin-bottom:22px}.tabs button{border:0;border-radius:9px;padding:11px;background:transparent;color:#aaa5b1;font-weight:700;cursor:pointer}.tabs button.active{background:#30232d;color:#fff}.field{display:grid;gap:7px;margin:15px 0}label{font-size:12px;color:#d9d3dd;font-weight:700}input{width:100%;background:#111116;border:1px solid #3b3742;border-radius:11px;padding:14px;color:#fff;font:inherit;outline:none}input:focus{border-color:#ff7891}.hint{font-size:11px;color:#898391;line-height:1.5}.primary{width:100%;border:0;border-radius:30px;padding:14px 18px;background:linear-gradient(120deg,var(--pink),var(--orange));color:#21151b;font-weight:800;font-size:14px;cursor:pointer;margin-top:10px}.message{display:none;margin-top:15px;padding:13px;border-radius:12px;background:#25232c;color:#d8d1dc;font-size:12px;line-height:1.6}.message.show{display:block}.message strong{color:var(--mint)}.links{display:flex;justify-content:space-between;gap:12px;margin-top:18px;font-size:12px}.links a,.back{color:#ff9bb0;text-decoration:none}.back{display:inline-block;margin-bottom:18px;font-weight:700}.foot{text-align:center;color:#77727e;font-size:11px;line-height:1.6;margin:18px 8px}
+</style></head>
+<body><main class="shell">
+<a class="back" href="index.html">← Voltar ao Maze Loop</a>
+<div class="brand"><div class="logo">M</div><strong>maze<span>loop</span></strong></div>
+<section class="card">
+<h1 id="title">Crie sua conta</h1><p class="intro" id="intro">Entre no Maze Loop. Primeiro criamos sua conta; depois você monta seu perfil e escolhe o que deseja compartilhar.</p>
+<div class="tabs"><button class="active" id="signupTab" type="button">Criar conta</button><button id="loginTab" type="button">Entrar</button></div>
+<form id="accountForm">
+<div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" placeholder="voce@exemplo.com" required></div>
+<div class="field"><label for="password">Senha</label><input id="password" type="password" autocomplete="new-password" minlength="8" placeholder="Pelo menos 8 caracteres" required><div class="hint">Use uma senha forte e exclusiva.</div></div>
+<div class="field" id="confirmField"><label for="confirm">Confirmar senha</label><input id="confirm" type="password" autocomplete="new-password" minlength="8" placeholder="Digite a senha novamente"></div>
+<button class="primary" id="submitBtn" type="submit">Continuar</button>
+</form>
+<div class="message" id="message" role="status"></div>
+<div class="links"><a href="criar-perfil.html">Testar criação de perfil →</a><a href="selos.html">Conhecer os selos</a></div>
+</section>
+<p class="foot">MODO DEMONSTRAÇÃO · Esta tela ainda não cria contas nem envia dados. A conexão segura com o Supabase será ativada na próxima etapa.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);let mode='signup';
+function setMode(next){mode=next;const signup=mode==='signup';$('signupTab').classList.toggle('active',signup);$('loginTab').classList.toggle('active',!signup);$('title').textContent=signup?'Crie sua conta':'Que bom ter você de volta';$('intro').textContent=signup?'Primeiro criamos sua conta; depois você monta seu perfil e escolhe o que deseja compartilhar.':'Entre com o e-mail e a senha usados no seu cadastro.';$('confirmField').style.display=signup?'grid':'none';$('confirm').required=signup;$('password').autocomplete=signup?'new-password':'current-password';$('submitBtn').textContent=signup?'Continuar':'Entrar';$('message').classList.remove('show');}
+$('signupTab').onclick=()=>setMode('signup');$('loginTab').onclick=()=>setMode('login');
+$('accountForm').addEventListener('submit',e=>{e.preventDefault();if(mode==='signup'&&$('password').value!==$('confirm').value){$('message').textContent='As senhas não conferem. Confira os dois campos.';$('message').classList.add('show');return;}$('message').innerHTML='<strong>Prévia da etapa de '+(mode==='signup'?'cadastro':'login')+' pronta.</strong> Ainda não enviamos seus dados nem criamos uma conta. Falta conectar esta tela ao projeto Supabase Maze Loop SP. Por segurança, não guardamos sua senha nesta demonstração.';$('message').classList.add('show');});
+</script></body></html>
