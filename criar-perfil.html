@@ -154,6 +154,17 @@ async function initialize() {
   }
   currentUser = user;
   try {
+    const editMode = new URLSearchParams(window.location.search).get('edit') === '1';
+    const [{ data: existingProfile, error: existingProfileError }, { data: existingPrivateProfile, error: existingPrivateError }] = await Promise.all([
+      supabase.from('profiles').select('id').eq('id', currentUser.id).maybeSingle(),
+      supabase.from('profile_private').select('user_id').eq('user_id', currentUser.id).maybeSingle()
+    ]);
+    if (existingProfileError) throw existingProfileError;
+    if (existingPrivateError) throw existingPrivateError;
+    if ((existingProfile || existingPrivateProfile) && !editMode) {
+      window.location.replace('index.html');
+      return;
+    }
     await loadProfile();
     await loadStoredPhotos();
     showMessage('Conta conectada. Você pode preencher e salvar seu perfil.');
