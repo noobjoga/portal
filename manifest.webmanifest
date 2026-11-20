@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "Maze Loop",
+  "short_name": "Maze Loop",
+  "description": "Todo encontro começa em um loop diferente.",
+  "lang": "pt-BR",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#101014",
+  "theme_color": "#101014",
+  "icons": [
+    {
+      "src": "/icons/maze-loop.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
