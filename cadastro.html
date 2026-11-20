@@ -65,7 +65,7 @@ $('accountForm').addEventListener('submit',async e=>{
   btn.textContent='Aguarde...';
   try{
     if(mode==='signup'){
-      const {data,error}=await supabase.auth.signUp({email,password});
+      const {data,error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:'https://mazeloop.com/cadastro.html'}});
       if(error) throw error;
       if(data.session){
         showMessage('<strong>Conta criada!</strong> Vamos continuar para a criação do seu perfil.');
