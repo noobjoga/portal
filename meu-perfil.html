@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101014">
+<title>Meu Loop — Maze Loop</title>
+<style>
+:root{--bg:#101014;--panel:#19191f;--line:#34313b;--text:#f5f3f7;--muted:#aaa5b1;--pink:#ff557e;--orange:#ff9861}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 80% 0,#30202a 0,transparent 35%),var(--bg);color:var(--text);font:15px Arial,sans-serif}
+.wrap{max-width:980px;margin:auto;padding:24px 18px 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px}.brand{font-weight:800;font-size:21px}.brand span{color:#ff7891}.links{display:flex;gap:9px;flex-wrap:wrap}.link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:25px;padding:11px 16px;font-size:12px;font-weight:bold;color:#f5edf2;background:#292630;border:1px solid #45404c}.link.primary{color:#21151b;border:0;background:linear-gradient(120deg,var(--pink),var(--orange))}
+h1{font-size:clamp(28px,5vw,40px);margin:5px 0}.eyebrow{color:#ff91a8;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:bold}.intro{color:var(--muted);line-height:1.6;margin:8px 0 24px}
+.profile{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:18px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:19px;padding:20px;min-width:0}.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.photo{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;background:#292630}.photo:first-child:nth-last-child(1){grid-column:1/-1;aspect-ratio:16/10;max-height:430px}.photo:first-child:nth-last-child(2){grid-column:span 2;grid-row:span 2;aspect-ratio:3/4}.photo-placeholder{grid-column:1/-1;min-height:260px;border-radius:14px;background:linear-gradient(135deg,#29232d,#1d1b22);display:grid;place-items:center;text-align:center;color:#aaa5b1;padding:20px}.photo-placeholder strong{display:block;color:#f4dbe3;font-size:15px;margin-bottom:7px}
+.name{font-size:29px;font-weight:800;margin:18px 0 5px;overflow-wrap:anywhere}.meta{color:#bcb5c1;font-size:13px;line-height:1.6}.bio{white-space:pre-wrap;line-height:1.7;color:#e2dce5;margin:18px 0}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#302630;border:1px solid #55404b;color:#f6c2d0;border-radius:30px;padding:7px 11px;font-size:11px}
+.section-title{font-size:15px;margin:0 0 13px}.info{padding:13px 0;border-bottom:1px solid #302e36}.info:last-child{border:0}.info span{display:block;color:#938d9a;font-size:11px;margin-bottom:5px}.info strong{font-size:13px;font-weight:600;overflow-wrap:anywhere}.notice{margin-top:16px;padding:13px;border-radius:12px;background:#28232a;color:#c5bdca;font-size:11px;line-height:1.6}.status{padding:15px;border-radius:13px;background:#211f26;color:#d5ced9;line-height:1.6;font-size:13px}.status.error{color:#ff9aa8}.loading{display:flex;gap:10px;align-items:center}.dot{width:8px;height:8px;border-radius:50%;background:#ff7891;box-shadow:0 0 14px #ff7891}
+@media(max-width:700px){.profile{grid-template-columns:1fr}.wrap{padding:18px 12px 40px}.panel{padding:15px}.top{align-items:flex-start}.links{justify-content:flex-end}.gallery{gap:6px}.name{font-size:25px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top"><div class="brand">maze<span>loop</span></div><nav class="links"><a class="link" href="index.html">Descobrir</a><a class="link primary" href="criar-perfil.html">Editar perfil</a></nav></header>
+<div class="eyebrow">Seu espaço no Maze Loop</div>
+<h1>Meu Loop</h1>
+<p class="intro">Aqui você pode visualizar as informações do seu perfil e conferir como ele está ficando.</p>
+<div id="status" class="status loading"><span class="dot"></span> Carregando seu perfil...</div>
+<section id="profile" class="profile" hidden>
+<div class="panel"><div id="gallery" class="gallery"></div><div class="name" id="name">Seu nome</div><div class="meta" id="meta"></div><p class="bio" id="bio"></p><div id="interests" class="chips"></div></div>
+<aside class="panel"><h2 class="section-title">Sobre seu perfil</h2><div class="info"><span>Nome de exibição</span><strong id="infoName">—</strong></div><div class="info"><span>Idade</span><strong id="infoAge">—</strong></div><div class="info"><span>Cidade</span><strong id="infoCity">—</strong></div><div class="info"><span>Interesses</span><strong id="infoInterests">—</strong></div><div class="notice">Sua data de nascimento é mantida em uma área privada da sua conta. Aqui mostramos somente sua idade. Suas fotos também estão em um armazenamento privado e esta página exibe apenas as fotos da sua própria conta.</div><div style="margin-top:16px"><a class="link primary" href="criar-perfil.html">✎ Editar minhas informações e fotos</a></div></aside>
+</section>
+</main>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const SUPABASE_URL = 'https://xovdwvrawnymhpobxuzc.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_UjNuZKeDQDgBzVNHqOh4Ww_O4ul5OI5';
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const BUCKET = 'profile-photos';
+const $ = id => document.getElementById(id);
+function ageFrom(value){
+ if(!value)return null;
+ const birth=new Date(value+'T00:00:00');
+ if(Number.isNaN(birth.getTime()))return null;
+ const today=new Date();let age=today.getFullYear()-birth.getFullYear();
+ if(today.getMonth()<birth.getMonth()||(today.getMonth()===birth.getMonth()&&today.getDate()<birth.getDate()))age--;
+ return age;
+}
+function showError(message){
+ $('status').classList.add('error');
+ $('status').classList.remove('loading');
+ $('status').textContent=message;
+}
+function addPhoto(url,index){
+ const img=document.createElement('img');
+ img.className='photo';img.src=url;img.alt='Foto '+(index+1)+' do seu perfil';
+ $('gallery').appendChild(img);
+}
+async function load(){
+ const {data:{user},error:authError}=await supabase.auth.getUser();
+ if(authError||!user){
+  $('status').textContent='Você precisa entrar na sua conta para visualizar seu perfil. Indo para a página de acesso...';
+  setTimeout(()=>location.href='cadastro.html',1500);return;
+ }
+ const [{data:profile,error:profileError},{data:privateData,error:privateError}]=await Promise.all([
+  supabase.from('profiles').select('display_name,bio,city,interests').eq('id',user.id).maybeSingle(),
+  supabase.from('profile_private').select('date_of_birth').eq('user_id',user.id).maybeSingle()
+ ]);
+ if(profileError)throw profileError;
+ if(privateError)throw privateError;
+ if(!profile){
+  $('status').textContent='Você ainda não criou seu perfil. Clique em “Editar perfil” para começar.';
+  return;
+ }
+ const age=ageFrom(privateData?.date_of_birth);
+ const name=profile.display_name||'Pessoa do Maze Loop';
+ const city=profile.city||'Cidade não informada';
+ const interests=Array.isArray(profile.interests)?profile.interests.filter(Boolean):[];
+ $('name').textContent=name+(age!==null?', '+age:'');
+ $('meta').textContent='⌖ '+city;
+ $('bio').textContent=profile.bio||'Este perfil ainda não tem uma descrição.';
+ $('infoName').textContent=name;
+ $('infoAge').textContent=age===null?'Não informada':age+' anos';
+ $('infoCity').textContent=city;
+ $('infoInterests').textContent=interests.length?interests.join(', '):'Ainda não adicionados';
+ interests.forEach(value=>{const chip=document.createElement('span');chip.className='chip';chip.textContent=value;$('interests').appendChild(chip)});
+ const {data:files,error:filesError}=await supabase.storage.from(BUCKET).list(user.id,{limit:100,sortBy:{column:'name',order:'asc'}});
+ if(filesError)throw filesError;
+ const photos=(files||[]).filter(file=>file.name&&!file.name.startsWith('.'));
+ for(const [index,file] of photos.entries()){
+  const path=user.id+'/'+file.name;
+  const {data:signed,error:signedError}=await supabase.storage.from(BUCKET).createSignedUrl(path,3600);
+  if(!signedError&&signed?.signedUrl)addPhoto(signed.signedUrl,index);
+ }
+ if(!$('gallery').children.length){
+  const empty=document.createElement('div');empty.className='photo-placeholder';
+  empty.innerHTML='<div><strong>Seu álbum começa aqui</strong>Adicione fotos para completar seu perfil.</div>';
+  $('gallery').appendChild(empty);
+ }
+ $('status').hidden=true;
+ $('profile').hidden=false;
+}
+load().catch(error=>{console.error(error);showError('Não foi possível carregar seu perfil. Confira sua conexão e tente atualizar a página.')});
+</script>
+</body>
+</html>
