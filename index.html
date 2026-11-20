@@ -45,7 +45,7 @@ main{min-width:0;padding:27px clamp(22px,4vw,60px) 40px}.top{display:flex;align-
     <button type="button" id="matchesNav"><span class="ico">♡</span><span class="nav-text">Curtidas</span></button>
     <button type="button" id="loopNav"><span class="ico">⟳</span><span class="nav-text">Meu Loop</span></button>
     <button type="button"><span class="ico">▤</span><span class="nav-text">Conversas</span></button>
-    <button type="button"><span class="ico">◎</span><span class="nav-text">Meu perfil</span></button>
+    <button type="button" id="accountNav"><span class="ico">◎</span><span class="nav-text">Entrar / criar conta</span></button>
   </nav>
   <div class="side-note"><b>Todo encontro começa em um loop diferente.</b><p>Explore caminhos, descubra pessoas e veja onde o seu loop pode chegar.</p></div>
 </aside>
@@ -107,6 +107,7 @@ swipeCard.addEventListener('pointerup',finishSwipe);swipeCard.addEventListener('
 $('passBtn').onclick=()=>{toast('Caminho seguido.');next()};
 $('likeBtn').onclick=()=>{likes++;toast('Curtida registrada nesta demonstração ♥');next()};
 $('loopBtn').onclick=()=>{if(!looped.has(people[index].name)){looped.add(people[index].name);loops++;toast(people[index].name+' entrou no seu Loop ⟳')}else toast('Essa pessoa já está no seu Loop.');render();updateStats()};
+$('accountNav').onclick=()=>{window.location.href='cadastro.html'};
 $('matchesNav').onclick=()=>toast('Você ainda não tem curtidas nesta demonstração.');
 $('loopNav').onclick=()=>toast(loops+' pessoa(s) guardada(s) no seu Loop.');
 $('howBtn').onclick=()=>toast('A ideia é explorar caminhos e reencontrar pessoas ao longo do tempo.');
