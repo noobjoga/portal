@@ -20,6 +20,7 @@ main{min-width:0;padding:27px clamp(22px,4vw,60px) 40px}.top{display:flex;align-
 .content{display:grid;grid-template-columns:minmax(320px,570px) minmax(220px,300px);gap:clamp(24px,4vw,58px);justify-content:center;align-items:start}
 .discovery{min-width:0}.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#19191f;color:#aaa7b1;border-radius:30px;padding:8px 13px;font-size:12px}.filter.selected{background:#38232c;border-color:#704050;color:#ff9bb0}
 .card{height:min(65vh,610px);min-height:430px;position:relative;border-radius:24px;overflow:hidden;background:#29252c;box-shadow:0 25px 80px #0008;border:1px solid #45404a}
+.card{touch-action:pan-y;user-select:none;cursor:grab;transition:transform .22s ease,opacity .22s ease}.card.dragging{transition:none;cursor:grabbing}.swipe-hint{position:absolute;z-index:3;top:82px;padding:9px 15px;border:2px solid currentColor;border-radius:10px;font-weight:900;letter-spacing:2px;font-size:18px;opacity:0;pointer-events:none}.swipe-like{right:22px;color:#8de2d0;transform:rotate(10deg)}.swipe-pass{left:22px;color:#ff829c;transform:rotate(-10deg)}
 .person-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%;filter:saturate(.88)}
 .card:after{content:"";position:absolute;inset:25% 0 0;background:linear-gradient(transparent,#0c0b0edb 88%)}
 .photo-tag{position:absolute;z-index:2;top:18px;left:18px;background:#17151bc9;border:1px solid #ffffff30;padding:8px 12px;border-radius:30px;font-size:11px;backdrop-filter:blur(10px)}
@@ -58,7 +59,7 @@ main{min-width:0;padding:27px clamp(22px,4vw,60px) 40px}.top{display:flex;align-
       <div class="filters"><button class="filter selected">Para você</button><button class="filter">Perto de mim</button><button class="filter">Interesses em comum</button></div>
       <div class="card" id="profileCard">
         <img class="person-photo" id="personPhoto" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=85" alt="Foto ilustrativa de perfil">
-        <div class="photo-tag">✦ Perfil em destaque</div><div class="loop-tag" id="loopTag">◌ Primeiro encontro</div>
+        <div class="photo-tag">✦ Perfil em destaque</div><div class="loop-tag" id="loopTag">◌ Primeiro encontro</div><div class="swipe-hint swipe-like" id="swipeLikeHint">CURTIR ♥</div><div class="swipe-hint swipe-pass" id="swipePassHint">× PASSAR</div>
         <div class="person-info"><div class="person-name"><span id="personName">Marina</span> <small id="personAge">27</small> <span class="verified">●</span></div>
           <div class="location" id="personLocation">⌖ São Paulo, SP · 8 km de você</div>
           <div class="bio" id="personBio">Gosto de descobrir cafés escondidos, viajar sem roteiro e conversar sobre qualquer coisa até perder a noção do tempo.</div>
@@ -97,6 +98,12 @@ $('personName').textContent=p.name;$('personAge').textContent=p.age;$('personLoc
 function updateStats(){$('seenCount').textContent=seen;$('likeCount').textContent=likes;$('loopCount').textContent=loops}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),1900)}
 function next(){index++;if(index<people.length)seen++;render();updateStats()}
+const swipeCard=$('profileCard');let startX=0,startY=0,dragging=false;
+swipeCard.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;startX=e.clientX;startY=e.clientY;dragging=true;swipeCard.classList.add('dragging');swipeCard.setPointerCapture(e.pointerId)});
+swipeCard.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-startX,dy=e.clientY-startY;if(Math.abs(dy)>Math.abs(dx)*1.25&&Math.abs(dy)>12)return;swipeCard.style.transform='translateX('+dx+'px) rotate('+(dx*.035)+'deg)';$('swipeLikeHint').style.opacity=String(Math.max(0,Math.min(1,dx/90)));$('swipePassHint').style.opacity=String(Math.max(0,Math.min(1,-dx/90)))});
+function finishSwipe(e){if(!dragging)return;dragging=false;const dx=e.clientX-startX;swipeCard.classList.remove('dragging');$('swipeLikeHint').style.opacity='0';$('swipePassHint').style.opacity='0';if(dx>95){swipeCard.style.transform='translateX(120%) rotate(18deg)';likes++;toast('Curtida registrada nesta demonstração ♥');setTimeout(()=>{swipeCard.style.transform='';next()},160)}else if(dx< -95){swipeCard.style.transform='translateX(-120%) rotate(-18deg)';toast('Caminho seguido.');setTimeout(()=>{swipeCard.style.transform='';next()},160)}else{swipeCard.style.transform='';}}
+swipeCard.addEventListener('pointerup',finishSwipe);swipeCard.addEventListener('pointercancel',()=>{dragging=false;swipeCard.classList.remove('dragging');swipeCard.style.transform='';$('swipeLikeHint').style.opacity='0';$('swipePassHint').style.opacity='0'});
+
 $('passBtn').onclick=()=>{toast('Caminho seguido.');next()};
 $('likeBtn').onclick=()=>{likes++;toast('Curtida registrada nesta demonstração ♥');next()};
 $('loopBtn').onclick=()=>{if(!looped.has(people[index].name)){looped.add(people[index].name);loops++;toast(people[index].name+' entrou no seu Loop ⟳')}else toast('Essa pessoa já está no seu Loop.');render();updateStats()};
