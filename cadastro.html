@@ -26,9 +26,67 @@
 </section>
 <p class="foot">MODO DEMONSTRAÇÃO · Esta tela ainda não cria contas nem envia dados. A conexão segura com o Supabase será ativada na próxima etapa.</p>
 </main>
-<script>
-const $=id=>document.getElementById(id);let mode='signup';
-function setMode(next){mode=next;const signup=mode==='signup';$('signupTab').classList.toggle('active',signup);$('loginTab').classList.toggle('active',!signup);$('title').textContent=signup?'Crie sua conta':'Que bom ter você de volta';$('intro').textContent=signup?'Primeiro criamos sua conta; depois você monta seu perfil e escolhe o que deseja compartilhar.':'Entre com o e-mail e a senha usados no seu cadastro.';$('confirmField').style.display=signup?'grid':'none';$('confirm').required=signup;$('password').autocomplete=signup?'new-password':'current-password';$('submitBtn').textContent=signup?'Continuar':'Entrar';$('message').classList.remove('show');}
-$('signupTab').onclick=()=>setMode('signup');$('loginTab').onclick=()=>setMode('login');
-$('accountForm').addEventListener('submit',e=>{e.preventDefault();if(mode==='signup'&&$('password').value!==$('confirm').value){$('message').textContent='As senhas não conferem. Confira os dois campos.';$('message').classList.add('show');return;}$('message').innerHTML='<strong>Prévia da etapa de '+(mode==='signup'?'cadastro':'login')+' pronta.</strong> Ainda não enviamos seus dados nem criamos uma conta. Falta conectar esta tela ao projeto Supabase Maze Loop SP. Por segurança, não guardamos sua senha nesta demonstração.';$('message').classList.add('show');});
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://xovdwvrawnymhpobxuzc.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_UjNuZKeDQDgBzVNHqOh4Ww_O4ul5OI5';
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const $=id=>document.getElementById(id);
+let mode='signup';
+function showMessage(html){$('message').innerHTML=html;$('message').classList.add('show');}
+function setMode(next){
+  mode=next;
+  const signup=mode==='signup';
+  $('signupTab').classList.toggle('active',signup);
+  $('loginTab').classList.toggle('active',!signup);
+  $('title').textContent=signup?'Crie sua conta':'Que bom ter você de volta';
+  $('intro').textContent=signup?'Primeiro criamos sua conta; depois você monta seu perfil e escolhe o que deseja compartilhar.':'Entre com o e-mail e a senha usados no seu cadastro.';
+  $('confirmField').style.display=signup?'grid':'none';
+  $('confirm').required=signup;
+  $('password').autocomplete=signup?'new-password':'current-password';
+  $('submitBtn').textContent=signup?'Criar minha conta':'Entrar';
+  $('message').classList.remove('show');
+}
+$('signupTab').onclick=()=>setMode('signup');
+$('loginTab').onclick=()=>setMode('login');
+
+$('accountForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const email=$('email').value.trim();
+  const password=$('password').value;
+  if(mode==='signup'&&password!==$('confirm').value){
+    showMessage('As senhas não conferem. Confira os dois campos.');
+    return;
+  }
+  const btn=$('submitBtn');
+  btn.disabled=true;
+  btn.textContent='Aguarde...';
+  try{
+    if(mode==='signup'){
+      const {data,error}=await supabase.auth.signUp({email,password});
+      if(error) throw error;
+      if(data.session){
+        showMessage('<strong>Conta criada!</strong> Vamos continuar para a criação do seu perfil.');
+        window.location.href='criar-perfil.html';
+      }else{
+        showMessage('<strong>Quase lá!</strong> O Supabase criou o pedido de cadastro. Confira sua caixa de entrada e confirme o e-mail. Depois volte aqui e entre com sua conta.');
+      }
+    }else{
+      const {error}=await supabase.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      showMessage('<strong>Login realizado!</strong> Abrindo seu perfil...');
+      window.location.href='criar-perfil.html';
+    }
+  }catch(error){
+    let message=error?.message||'Não foi possível concluir. Tente novamente.';
+    if(message.toLowerCase().includes('invalid login credentials')) message='E-mail ou senha incorretos.';
+    if(message.toLowerCase().includes('user already registered')) message='Este e-mail já tem uma conta. Use a opção Entrar.';
+    showMessage(message);
+  }finally{
+    btn.disabled=false;
+    btn.textContent=mode==='signup'?'Criar minha conta':'Entrar';
+  }
+});
 </script></body></html>
