@@ -8,8 +8,26 @@ if ('serviceWorker' in navigator) {
 
 let installPrompt = null;
 
+function isInstalledApp() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.navigator.standalone === true;
+}
+
+function hideInstallButtons() {
+  document.querySelectorAll('.install-app').forEach(button => {
+    button.hidden = true;
+  });
+}
+
+if (isInstalledApp()) hideInstallButtons();
+
 window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault();
+  if (isInstalledApp()) {
+    hideInstallButtons();
+    return;
+  }
   installPrompt = event;
   document.querySelectorAll('.install-app').forEach(button => {
     button.hidden = false;
