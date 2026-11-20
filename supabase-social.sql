@@ -129,7 +129,17 @@ using (auth.uid() = sender_id or auth.uid() = receiver_id);
 drop policy if exists "Users can send gifts as themselves" on public.profile_gifts;
 create policy "Users can send gifts as themselves"
 on public.profile_gifts for insert to authenticated
-with check (auth.uid() = sender_id and sender_id <> receiver_id and char_length(message) <= 180);
+with check (
+  auth.uid() = sender_id
+  and sender_id <> receiver_id
+  and char_length(message) <= 180
+  and exists (
+    select 1 from public.gift_catalog
+    where gift_catalog.id = profile_gifts.gift_id
+      and gift_catalog.active = true
+      and gift_catalog.coin_price = 0
+  )
+);
 
 -- 5) Visitas ao perfil. O dono do perfil vê quem visitou; o visitante registra a própria visita.
 create table if not exists public.profile_visits (
