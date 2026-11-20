@@ -115,7 +115,7 @@ $('likeBtn').onclick=()=>{likes++;toast('Curtida registrada nesta demonstração
 $('loopBtn').onclick=()=>{if(!looped.has(people[index].name)){looped.add(people[index].name);loops++;toast(people[index].name+' entrou no seu Loop ⟳')}else toast('Essa pessoa já está no seu Loop.');render();updateStats()};
 $('accountNav').onclick=()=>{window.location.href='cadastro.html'};
 $('matchesNav').onclick=()=>toast('Você ainda não tem curtidas nesta demonstração.');
-$('loopNav').onclick=()=>toast(loops+' pessoa(s) guardada(s) no seu Loop.');
+$('loopNav').onclick=()=>{window.location.href='meu-perfil.html'};
 $('howBtn').onclick=()=>toast('A ideia é explorar caminhos e reencontrar pessoas ao longo do tempo.');
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');toast('Filtro visual selecionado: '+b.textContent)});
 </script>
