@@ -101,11 +101,25 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_UjNuZKeDQDgBzVNHqOh4Ww_O4ul5OI5
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 let people = [];
+let allPeople = [];
 let index = 0;
 let seen = 0;
 let likes = 0;
 let loops = 0;
+let passedStorageKey = '';
 const $ = id => document.getElementById(id);
+
+function getPassedIds() {
+  if (!passedStorageKey) return [];
+  try { return JSON.parse(sessionStorage.getItem(passedStorageKey) || '[]'); }
+  catch { return []; }
+}
+function savePassedId(id) {
+  if (!passedStorageKey || !id) return;
+  const passed = new Set(getPassedIds());
+  passed.add(id);
+  sessionStorage.setItem(passedStorageKey, JSON.stringify([...passed]));
+}
 
 function toast(message) {
   const element = $('toast');
@@ -132,12 +146,19 @@ function render() {
   const person = people[index];
   if (!person) {
     showEmpty(
-      people.length ? 'Você viu todos os perfis disponíveis.' : 'Ainda não há outras pessoas por aqui.',
-      people.length
-        ? 'Quando novas pessoas criarem seus perfis, elas poderão aparecer nesta descoberta.'
+      allPeople.length ? 'Você viu todos os perfis disponíveis.' : 'Ainda não há outras pessoas por aqui.',
+      allPeople.length
+        ? 'Os perfis que você passou ficam ocultos nesta sessão. Você pode recomeçar a descoberta quando quiser.'
         : 'Seu perfil está conectado, mas ainda precisamos de outra pessoa cadastrada para testar a descoberta real. Convide alguém para criar uma conta e completar o perfil.',
-      people.length ? 'Recomeçar descoberta' : 'Atualizar perfis',
-      people.length ? () => { index = 0; seen = 1; render(); updateStats(); } : loadPeople
+      allPeople.length ? 'Recomeçar descoberta' : 'Atualizar perfis',
+      allPeople.length ? () => {
+        sessionStorage.removeItem(passedStorageKey);
+        people = [...allPeople];
+        index = 0;
+        seen = people.length ? 1 : 0;
+        render();
+        updateStats();
+      } : loadPeople
     );
     return;
   }
@@ -158,6 +179,8 @@ function render() {
   $('loopTag').textContent = '◌ Perfil cadastrado';
 }
 function next() {
+  const current = people[index];
+  if (current) savePassedId(current.id);
   index++;
   if (index < people.length) seen++;
   render();
@@ -185,7 +208,10 @@ async function loadPeople() {
     showEmpty('Não conseguimos carregar os perfis.', 'A consulta ao banco de dados falhou. Confira a conexão e tente novamente.', 'Tentar novamente', loadPeople);
     return;
   }
-  people = (data || []).filter(profile => profile.display_name);
+  allPeople = (data || []).filter(profile => profile.display_name);
+  passedStorageKey = 'maze-loop-passed-' + user.id;
+  const passedIds = new Set(getPassedIds());
+  people = allPeople.filter(profile => !passedIds.has(profile.id));
   index = 0;
   seen = people.length ? 1 : 0;
   render();
