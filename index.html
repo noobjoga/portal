@@ -27,6 +27,7 @@ main{min-width:0;padding:27px clamp(22px,4vw,60px) 40px}.top{display:flex;align-
 .loop-tag{position:absolute;z-index:2;top:18px;right:18px;background:#211c27d9;color:#ffc0cf;padding:8px 11px;border-radius:30px;font-size:11px}
 .person-info{position:absolute;z-index:2;bottom:22px;left:24px;right:24px}.person-name{font:800 30px Manrope;letter-spacing:-1px}.person-name small{font:500 16px 'DM Sans';color:#e7dfe6}.verified{color:#8de2d0;font-size:14px}.location{font-size:13px;color:#d1cbd3;margin-top:5px}.bio{font-size:14px;line-height:1.5;color:#f0eaf0;margin-top:13px;max-width:440px}.interests{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}.interest{font-size:11px;border:1px solid #ffffff4d;background:#ffffff18;padding:6px 10px;border-radius:30px}
 .actions{display:flex;align-items:center;justify-content:center;gap:17px;margin-top:18px}.action{width:54px;height:54px;border-radius:50%;background:#222129;border:1px solid #3d3944;font-size:22px;transition:.18s}.action:hover{transform:translateY(-3px);background:#34303a}.action.like{width:66px;height:66px;background:linear-gradient(135deg,var(--pink),#ff796e);font-size:27px;box-shadow:0 8px 28px #ff557e38}.action.loop{color:#ffc07e}.action-label{font-size:10px;color:#85818c;text-align:center;margin-top:7px}
+.signup-prompt{margin:16px auto 0;max-width:430px;padding:13px 15px;border:1px solid #493541;border-radius:14px;background:linear-gradient(120deg,#251d27,#201d24);display:flex;align-items:center;justify-content:space-between;gap:12px}.signup-prompt p{margin:0;color:#c9c1cc;font-size:12px;line-height:1.5}.signup-prompt p strong{display:block;color:#fff;font-size:13px;margin-bottom:2px}.signup-prompt a{flex:none;text-decoration:none;border-radius:24px;padding:10px 13px;background:linear-gradient(120deg,var(--pink),var(--orange));color:#21151b;font-size:11px;font-weight:800}
 .right-col{display:grid;gap:15px;padding-top:6px}.panel{background:#19191f;border:1px solid var(--line);border-radius:18px;padding:19px}.panel h3{font:700 15px Manrope;margin:0 0 8px}.panel p{font-size:12px;line-height:1.65;color:#a5a1ac;margin:0}.maze-art{height:115px;margin:15px 0 12px;border-radius:12px;background:#211d27;display:grid;place-items:center;overflow:hidden}.maze-art svg{width:100%;height:100%}.panel-link{background:transparent;color:#ff8da4;font-size:12px;padding:0;margin-top:12px;font-weight:700}
 .stat-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #302e36;font-size:12px;color:#aaa6b1}.stat-row:last-child{border:0;padding-bottom:0}.stat-row strong{color:#f6eff5;font-size:13px}
 .tip{display:flex;gap:11px;align-items:flex-start}.tip-icon{font-size:21px}.tip p{margin-top:3px}
@@ -70,6 +71,10 @@ main{min-width:0;padding:27px clamp(22px,4vw,60px) 40px}.top{display:flex;align-
         <div><button class="action" id="passBtn" aria-label="Passar">×</button><div class="action-label">Passar</div></div>
         <div><button class="action loop" id="loopBtn" aria-label="Guardar no loop">⟳</button><div class="action-label">Loop</div></div>
         <div><button class="action like" id="likeBtn" aria-label="Curtir">♥</button><div class="action-label">Curtir</div></div>
+      </div>
+      <div class="signup-prompt">
+        <p><strong>Seu caminho começa com você.</strong>Crie sua conta para preparar seu perfil e participar do Maze Loop.</p>
+        <a href="cadastro.html">Entrar / cadastrar</a>
       </div>
     </div>
     <aside class="right-col">
