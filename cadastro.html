@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101014">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/maze-loop.svg" type="image/svg+xml">
 <title>Entrar ou criar conta — Maze Loop</title>
 <style>
 :root{--bg:#101014;--panel:#19191f;--line:#34313b;--text:#f5f3f7;--muted:#aaa5b1;--pink:#ff557e;--orange:#ff9861;--mint:#9ce7d2}
@@ -89,4 +91,6 @@ $('accountForm').addEventListener('submit',async e=>{
     btn.textContent=mode==='signup'?'Criar minha conta':'Entrar';
   }
 });
-</script></body></html>
+</script><script type="module" src="/pwa.js"></script>
+<script type="module" src="/presence.js"></script>
+</body></html>
