@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101014"><title>Criar perfil — Maze Loop</title>
+<style>
+:root{--bg:#101014;--panel:#19191f;--line:#34313b;--text:#f5f3f7;--muted:#aaa5b1;--pink:#ff557e;--orange:#ff9861}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#30202a 0,transparent 35%),var(--bg);color:var(--text);font:15px Arial,sans-serif}.wrap{max-width:850px;margin:auto;padding:26px 16px 60px}.back{color:#ff9bb0;text-decoration:none;font-weight:bold}.brand{font-weight:800;font-size:20px;margin:24px 0 8px}.brand span{color:#ff7891}h1{font-size:clamp(27px,5vw,38px);margin:8px 0}.intro{color:var(--muted);line-height:1.6}.layout{display:grid;grid-template-columns:1fr 280px;gap:18px;margin-top:24px;align-items:start}.panel{background:#19191f;border:1px solid var(--line);border-radius:18px;padding:20px}.field{display:grid;gap:7px;margin-bottom:16px}label{font-size:12px;color:#d9d3dd;font-weight:bold}input,textarea{width:100%;background:#111116;border:1px solid #3b3742;border-radius:10px;padding:12px;color:#fff;font:inherit;outline:none}input:focus,textarea:focus{border-color:#ff7891}textarea{resize:vertical;min-height:95px}small,.hint{color:#8f8997;font-size:11px;line-height:1.5}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.photos{border:1px dashed #65505e;border-radius:13px;padding:15px;background:#211b23}.previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.previews img{width:68px;height:78px;object-fit:cover;border-radius:9px}.btn{border:0;border-radius:30px;padding:13px 19px;font-weight:bold;cursor:pointer;color:#21151b;background:linear-gradient(120deg,var(--pink),var(--orange))}.secondary{background:#292630;color:#eee;border:1px solid #45404c}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.preview-photo{width:100%;height:230px;object-fit:cover;border-radius:13px;background:#292630}.preview-name{font-size:23px;font-weight:800;margin:13px 0 4px}.chip{display:inline-block;background:#302630;border:1px solid #55404b;color:#f6c2d0;border-radius:30px;padding:6px 9px;font-size:11px;margin:5px 4px 0 0}.notice{margin-top:15px;padding:12px;border-radius:12px;background:#28232a;color:#c5bdca;font-size:11px;line-height:1.6}.message{margin-top:12px;color:#9ce7d2;font-size:13px;min-height:18px}@media(max-width:680px){.layout{grid-template-columns:1fr}.row{grid-template-columns:1fr}.preview-photo{height:280px}}
+</style></head>
+<body><main class="wrap">
+<a class="back" href="index.html">← Voltar para descobrir pessoas</a>
+<div class="brand">maze<span>loop</span></div>
+<h1>Seu caminho começa aqui.</h1>
+<p class="intro">Monte um perfil de demonstração para visualizar como você apareceria no Maze Loop. Ainda não é um cadastro real e nada será enviado ao servidor.</p>
+<div class="layout">
+<section class="panel">
+<form id="profileForm">
+<div class="row">
+<div class="field"><label for="name">Nome para exibição</label><input id="name" maxlength="40" placeholder="Como quer ser chamado?" required></div>
+<div class="field"><label for="birth">Data de nascimento (18+)</label><input id="birth" type="date" required><small>O protótipo não valida identidade; não use dados de outra pessoa.</small></div>
+</div>
+<div class="row">
+<div class="field"><label for="city">Cidade</label><input id="city" maxlength="60" placeholder="Ex.: São Paulo"></div>
+<div class="field"><label for="interests">Interesses</label><input id="interests" maxlength="100" placeholder="Música, viagens, cinema"></div>
+</div>
+<div class="field"><label for="bio">Sobre você</label><textarea id="bio" maxlength="500" placeholder="Conte um pouco sobre você (até 500 caracteres)."></textarea><small><span id="count">0</span>/500</small></div>
+<div class="field"><label for="photos">Fotos (até 6)</label><div class="photos"><input id="photos" type="file" accept="image/*" multiple><div class="hint">Escolha imagens para pré-visualizar. Nesta demonstração elas ficam somente neste navegador.</div><div class="previews" id="previews"></div></div></div>
+<div class="actions"><button class="btn" type="submit">Salvar perfil de demonstração</button><button class="btn secondary" type="button" id="clear">Limpar</button></div><div class="message" id="message" role="status"></div>
+</form>
+<div class="notice"><strong>Importante:</strong> este é um teste visual local. O perfil não é publicado, não aparece para outras pessoas e não é salvo no Supabase. O cadastro real será conectado depois, com privacidade e segurança.</div>
+</section>
+<aside class="panel">
+<h2 style="margin:0 0 12px;font-size:17px">Prévia do perfil</h2>
+<img class="preview-photo" id="hero" alt="Prévia da foto escolhida">
+<div class="preview-name"><span id="pvName">Seu nome</span> <span id="pvAge" style="font-size:14px;color:#c9c1cc;font-weight:500"></span></div>
+<div class="hint" id="pvLocation">⌖ Sua cidade</div>
+<p id="pvBio" style="font-size:13px;line-height:1.6;color:#d4cdd7">Sua descrição aparecerá aqui.</p><div id="pvInterests"></div>
+<div class="notice">O selo verde de verificação não é concedido automaticamente por quantidade de fotos. Ele exigirá um processo real de verificação.</div>
+</aside>
+</div></main>
+<script>
+const $=id=>document.getElementById(id);let imageUrls=[];
+function ageFrom(value){if(!value)return '';const d=new Date(value+'T00:00:00');let a=new Date().getFullYear()-d.getFullYear();const m=new Date().getMonth()-d.getMonth();if(m<0||(m===0&&new Date().getDate()<d.getDate()))a--;return a;}
+function update(){const name=$('name').value.trim();$('pvName').textContent=name||'Seu nome';const age=ageFrom($('birth').value);$('pvAge').textContent=age?' · '+age:'';$('pvLocation').textContent='⌖ '+($('city').value.trim()||'Sua cidade');$('pvBio').textContent=$('bio').value.trim()||'Sua descrição aparecerá aqui.';$('count').textContent=$('bio').value.length;$('pvInterests').innerHTML=$('interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,8).map(x=>'<span class="chip">'+x.replace(/[<>]/g,'')+'</span>').join('');}
+['name','birth','city','bio','interests'].forEach(id=>$(id).addEventListener('input',update));
+$('photos').addEventListener('change',e=>{imageUrls.forEach(URL.revokeObjectURL);imageUrls=Array.from(e.target.files).slice(0,6).map(f=>URL.createObjectURL(f));$('previews').innerHTML='';imageUrls.forEach((src,i)=>{const img=document.createElement('img');img.src=src;img.alt='Foto '+(i+1);$('previews').appendChild(img)});if(imageUrls[0])$('hero').src=imageUrls[0];});
+$('profileForm').addEventListener('submit',e=>{e.preventDefault();const age=ageFrom($('birth').value);if(age<18){$('message').textContent='Este serviço será destinado somente a maiores de 18 anos.';return;}if(age>110||age<0){$('message').textContent='Confira a data de nascimento.';return;}const data={name:$('name').value.trim(),birth:$('birth').value,city:$('city').value.trim(),bio:$('bio').value.trim(),interests:$('interests').value.split(',').map(x=>x.trim()).filter(Boolean),photos:imageUrls.length};try{sessionStorage.setItem('mazeLoopProfileDemo',JSON.stringify(data));$('message').textContent='Perfil de demonstração salvo nesta sessão do navegador. Ainda não foi publicado nem enviado ao Supabase.';}catch(err){$('message').textContent='Prévia atualizada. O navegador não permitiu salvar a demonstração.';}update();});
+$('clear').onclick=()=>{$('profileForm').reset();imageUrls.forEach(URL.revokeObjectURL);imageUrls=[];$('previews').innerHTML='';$('hero').removeAttribute('src');sessionStorage.removeItem('mazeLoopProfileDemo');$('message').textContent='Campos limpos.';update();};update();
+</script></body></html>
