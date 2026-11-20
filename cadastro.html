@@ -80,18 +80,18 @@ $('accountForm').addEventListener('submit',async e=>{
       if(error) throw error;
       const userId=data.user?.id;
       if(!userId) throw new Error('Não foi possível identificar sua conta. Entre novamente.');
-      const {data:profile,error:profileError}=await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id',userId)
-        .maybeSingle();
+      const [{data:profile,error:profileError},{data:privateProfile,error:privateError}]=await Promise.all([
+        supabase.from('profiles').select('id').eq('id',userId).maybeSingle(),
+        supabase.from('profile_private').select('user_id').eq('user_id',userId).maybeSingle()
+      ]);
       if(profileError) throw profileError;
-      if(profile){
+      if(privateError) throw privateError;
+      if(profile || privateProfile){
         showMessage('<strong>Login realizado!</strong> Abrindo a descoberta...');
-        window.location.href='index.html';
+        window.location.replace('index.html');
       }else{
         showMessage('<strong>Login realizado!</strong> Vamos completar seu perfil.');
-        window.location.href='criar-perfil.html';
+        window.location.replace('criar-perfil.html');
       }
     }
   }catch(error){
