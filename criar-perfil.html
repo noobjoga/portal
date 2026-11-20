@@ -11,7 +11,7 @@
 <a class="back" href="index.html">← Voltar para descobrir pessoas</a>
 <div class="brand">maze<span>loop</span></div>
 <h1>Seu caminho começa aqui.</h1>
-<p class="intro">Monte um perfil de demonstração para visualizar como você apareceria no Maze Loop. Ainda não é um cadastro real e nada será enviado ao servidor.</p>
+<p class="intro">Complete seu perfil para começar sua jornada no Maze Loop. Suas informações serão salvas na sua conta.</p>
 <div class="layout">
 <section class="panel">
 <form id="profileForm">
@@ -25,9 +25,9 @@
 </div>
 <div class="field"><label for="bio">Sobre você</label><textarea id="bio" maxlength="500" placeholder="Conte um pouco sobre você (até 500 caracteres)."></textarea><small><span id="count">0</span>/500</small></div>
 <div class="field"><label for="photos">Fotos (até 6)</label><div class="photos"><input id="photos" type="file" accept="image/*" multiple><div class="hint">Escolha imagens para pré-visualizar. Nesta demonstração elas ficam somente neste navegador.</div><div class="previews" id="previews"></div></div></div>
-<div class="actions"><button class="btn" type="submit">Salvar perfil de demonstração</button><button class="btn secondary" type="button" id="clear">Limpar</button></div><div class="message" id="message" role="status"></div>
+<div class="actions"><button class="btn" type="submit" id="saveBtn">Salvar meu perfil</button><button class="btn secondary" type="button" id="clear">Limpar campos</button></div><div class="message" id="message" role="status" aria-live="polite"></div>
 </form>
-<div class="notice"><strong>Importante:</strong> este é um teste visual local. O perfil não é publicado, não aparece para outras pessoas e não é salvo no Supabase. O cadastro real será conectado depois, com privacidade e segurança.</div>
+<div class="notice"><strong>Privacidade:</strong> seu nome, cidade, descrição e interesses serão salvos no perfil. Sua data de nascimento ficará em uma área privada da sua conta. As fotos serão guardadas no armazenamento privado.</div>
 </section>
 <aside class="panel">
 <h2 style="margin:0 0 12px;font-size:17px">Prévia do perfil</h2>
@@ -38,12 +38,245 @@
 <div class="notice">O selo verde de verificação não é concedido automaticamente por quantidade de fotos. Ele exigirá um processo real de verificação.</div>
 </aside>
 </div></main>
-<script>
-const $=id=>document.getElementById(id);let imageUrls=[];
-function ageFrom(value){if(!value)return '';const d=new Date(value+'T00:00:00');let a=new Date().getFullYear()-d.getFullYear();const m=new Date().getMonth()-d.getMonth();if(m<0||(m===0&&new Date().getDate()<d.getDate()))a--;return a;}
-function update(){const name=$('name').value.trim();$('pvName').textContent=name||'Seu nome';const age=ageFrom($('birth').value);$('pvAge').textContent=age?' · '+age:'';$('pvLocation').textContent='⌖ '+($('city').value.trim()||'Sua cidade');$('pvBio').textContent=$('bio').value.trim()||'Sua descrição aparecerá aqui.';$('count').textContent=$('bio').value.length;$('pvInterests').innerHTML=$('interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,8).map(x=>'<span class="chip">'+x.replace(/[<>]/g,'')+'</span>').join('');}
-['name','birth','city','bio','interests'].forEach(id=>$(id).addEventListener('input',update));
-$('photos').addEventListener('change',e=>{imageUrls.forEach(URL.revokeObjectURL);imageUrls=Array.from(e.target.files).slice(0,6).map(f=>URL.createObjectURL(f));$('previews').innerHTML='';imageUrls.forEach((src,i)=>{const img=document.createElement('img');img.src=src;img.alt='Foto '+(i+1);$('previews').appendChild(img)});if(imageUrls[0])$('hero').src=imageUrls[0];});
-$('profileForm').addEventListener('submit',e=>{e.preventDefault();const age=ageFrom($('birth').value);if(age<18){$('message').textContent='Este serviço será destinado somente a maiores de 18 anos.';return;}if(age>110||age<0){$('message').textContent='Confira a data de nascimento.';return;}const data={name:$('name').value.trim(),birth:$('birth').value,city:$('city').value.trim(),bio:$('bio').value.trim(),interests:$('interests').value.split(',').map(x=>x.trim()).filter(Boolean),photos:imageUrls.length};try{sessionStorage.setItem('mazeLoopProfileDemo',JSON.stringify(data));$('message').textContent='Perfil de demonstração salvo nesta sessão do navegador. Ainda não foi publicado nem enviado ao Supabase.';}catch(err){$('message').textContent='Prévia atualizada. O navegador não permitiu salvar a demonstração.';}update();});
-$('clear').onclick=()=>{$('profileForm').reset();imageUrls.forEach(URL.revokeObjectURL);imageUrls=[];$('previews').innerHTML='';$('hero').removeAttribute('src');sessionStorage.removeItem('mazeLoopProfileDemo');$('message').textContent='Campos limpos.';update();};update();
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://xovdwvrawnymhpobxuzc.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_UjNuZKeDQDgBzVNHqOh4Ww_O4ul5OI5';
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const $ = id => document.getElementById(id);
+const BUCKET = 'profile-photos';
+const MAX_PHOTOS = 6;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+let currentUser = null;
+let storedPhotos = [];
+let selectedFiles = [];
+let previewUrls = [];
+
+function showMessage(message, isError = false) {
+  $('message').textContent = message;
+  $('message').style.color = isError ? '#ff9aa8' : '#9ce7d2';
+}
+function ageFrom(value) {
+  if (!value) return null;
+  const birth = new Date(value + 'T00:00:00');
+  if (Number.isNaN(birth.getTime())) return null;
+  let age = new Date().getFullYear() - birth.getFullYear();
+  const month = new Date().getMonth() - birth.getMonth();
+  if (month < 0 || (month === 0 && new Date().getDate() < birth.getDate())) age--;
+  return age;
+}
+function updateTextPreview() {
+  const name = $('name').value.trim();
+  $('pvName').textContent = name || 'Seu nome';
+  const age = ageFrom($('birth').value);
+  $('pvAge').textContent = age === null ? '' : ' · ' + age;
+  $('pvLocation').textContent = '⌖ ' + ($('city').value.trim() || 'Sua cidade');
+  $('pvBio').textContent = $('bio').value.trim() || 'Sua descrição aparecerá aqui.';
+  $('count').textContent = $('bio').value.length;
+  $('pvInterests').replaceChildren();
+  $('interests').value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 8).forEach(value => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = value;
+    $('pvInterests').appendChild(chip);
+  });
+}
+function revokePreviews() {
+  previewUrls.forEach(url => URL.revokeObjectURL(url));
+  previewUrls = [];
+}
+function renderPhotos() {
+  $('previews').replaceChildren();
+  const all = [
+    ...storedPhotos.map(photo => ({ url: photo.url, label: 'Foto salva' })),
+    ...selectedFiles.map(file => ({ url: URL.createObjectURL(file), label: 'Nova foto' }))
+  ];
+  // Recria as URLs locais sem manter referências antigas.
+  revokePreviews();
+  const localItems = selectedFiles.map(file => {
+    const url = URL.createObjectURL(file);
+    previewUrls.push(url);
+    return { url, label: 'Nova foto' };
+  });
+  const items = [
+    ...storedPhotos.map(photo => ({ url: photo.url, label: 'Foto salva' })),
+    ...localItems
+  ];
+  items.slice(0, MAX_PHOTOS).forEach((item, index) => {
+    const img = document.createElement('img');
+    img.src = item.url;
+    img.alt = item.label + ' ' + (index + 1);
+    $('previews').appendChild(img);
+  });
+  if (items[0]) $('hero').src = items[0].url;
+  else $('hero').removeAttribute('src');
+}
+async function loadStoredPhotos() {
+  const { data, error } = await supabase.storage.from(BUCKET).list(currentUser.id, {
+    limit: 100,
+    sortBy: { column: 'name', order: 'asc' }
+  });
+  if (error) throw error;
+  const files = (data || []).filter(item => item.name && !item.name.startsWith('.'));
+  storedPhotos = [];
+  for (const file of files) {
+    const path = currentUser.id + '/' + file.name;
+    const { data: signed, error: signedError } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600);
+    if (!signedError && signed?.signedUrl) storedPhotos.push({ path, url: signed.signedUrl });
+  }
+  renderPhotos();
+}
+async function loadProfile() {
+  const [{ data: profile, error: profileError }, { data: privateProfile, error: privateError }] = await Promise.all([
+    supabase.from('profiles').select('display_name,bio,city,interests').eq('id', currentUser.id).maybeSingle(),
+    supabase.from('profile_private').select('date_of_birth').eq('user_id', currentUser.id).maybeSingle()
+  ]);
+  if (profileError) throw profileError;
+  if (privateError) throw privateError;
+  if (profile) {
+    $('name').value = profile.display_name || '';
+    $('city').value = profile.city || '';
+    $('bio').value = profile.bio || '';
+    $('interests').value = Array.isArray(profile.interests) ? profile.interests.join(', ') : '';
+  }
+  if (privateProfile?.date_of_birth) $('birth').value = privateProfile.date_of_birth;
+  updateTextPreview();
+}
+async function initialize() {
+  $('saveBtn').disabled = true;
+  showMessage('Verificando sua conta...');
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    showMessage('Você precisa entrar na sua conta antes de criar um perfil. Redirecionando para o login...');
+    setTimeout(() => { window.location.href = 'cadastro.html'; }, 1600);
+    return;
+  }
+  currentUser = user;
+  try {
+    await loadProfile();
+    await loadStoredPhotos();
+    showMessage('Conta conectada. Você pode preencher e salvar seu perfil.');
+    $('saveBtn').disabled = false;
+  } catch (err) {
+    console.error(err);
+    showMessage('Não foi possível carregar seus dados. Atualize a página ou tente novamente.', true);
+    $('saveBtn').disabled = false;
+  }
+}
+async function uploadSelectedPhotos() {
+  const uploaded = [];
+  for (const file of selectedFiles) {
+    const safeName = file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]/g, '-').slice(-80) || 'foto';
+    const path = currentUser.id + '/' + Date.now() + '-' + crypto.randomUUID() + '-' + safeName;
+    const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+      cacheControl: '3600',
+      contentType: file.type,
+      upsert: false
+    });
+    if (error) throw error;
+    uploaded.push(path);
+  }
+  return uploaded;
+}
+
+['name', 'birth', 'city', 'bio', 'interests'].forEach(id => $(id).addEventListener('input', updateTextPreview));
+$('photos').addEventListener('change', event => {
+  const files = Array.from(event.target.files || []);
+  const invalid = files.find(file => !ALLOWED_TYPES.includes(file.type) || file.size > MAX_FILE_SIZE);
+  if (invalid) {
+    showMessage('Use somente JPG, PNG ou WebP, com no máximo 5 MB por foto.', true);
+    event.target.value = '';
+    selectedFiles = [];
+    renderPhotos();
+    return;
+  }
+  if (storedPhotos.length + files.length > MAX_PHOTOS) {
+    showMessage('O limite é de 6 fotos no total. Você já tem ' + storedPhotos.length + ' foto(s) salva(s).', true);
+    event.target.value = '';
+    selectedFiles = [];
+    renderPhotos();
+    return;
+  }
+  selectedFiles = files;
+  renderPhotos();
+  showMessage(files.length ? files.length + ' nova(s) foto(s) pronta(s) para salvar.' : 'Nenhuma foto nova selecionada.');
+});
+
+$('profileForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!currentUser) {
+    showMessage('Entre na sua conta antes de salvar o perfil.', true);
+    return;
+  }
+  const displayName = $('name').value.trim();
+  const birth = $('birth').value;
+  const age = ageFrom(birth);
+  if (displayName.length < 2) {
+    showMessage('O nome precisa ter pelo menos 2 caracteres.', true);
+    return;
+  }
+  if (age === null || age < 18 || age > 110) {
+    showMessage('Informe uma data válida. O Maze Loop é destinado a maiores de 18 anos.', true);
+    return;
+  }
+  const interests = $('interests').value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 12);
+  const button = $('saveBtn');
+  button.disabled = true;
+  button.textContent = 'Salvando...';
+  showMessage('Salvando seu perfil e suas fotos...');
+  try {
+    const uploadedPaths = await uploadSelectedPhotos();
+    const { error: profileError } = await supabase.from('profiles').upsert({
+      id: currentUser.id,
+      display_name: displayName,
+      bio: $('bio').value.trim(),
+      city: $('city').value.trim() || null,
+      interests
+    }, { onConflict: 'id' });
+    if (profileError) throw profileError;
+
+    const { error: privateError } = await supabase.from('profile_private').upsert({
+      user_id: currentUser.id,
+      date_of_birth: birth
+    }, { onConflict: 'user_id' });
+    if (privateError) throw privateError;
+
+    selectedFiles = [];
+    $('photos').value = '';
+    await loadStoredPhotos();
+    showMessage('Perfil salvo com sucesso! Suas informações e fotos estão guardadas na sua conta.');
+  } catch (err) {
+    console.error(err);
+    const message = err?.message || 'Erro desconhecido.';
+    if (message.includes('A idade informada não é permitida')) {
+      showMessage('A data de nascimento não passou pela validação do banco. Confira a data informada.', true);
+    } else {
+      showMessage('Não foi possível salvar tudo: ' + message, true);
+    }
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Salvar meu perfil';
+  }
+});
+
+$('clear').addEventListener('click', () => {
+  $('name').value = '';
+  $('birth').value = '';
+  $('city').value = '';
+  $('bio').value = '';
+  $('interests').value = '';
+  $('photos').value = '';
+  selectedFiles = [];
+  revokePreviews();
+  updateTextPreview();
+  renderPhotos();
+  showMessage('Campos não salvos foram limpos. Seus dados já salvos continuam na sua conta.');
+});
+
+window.addEventListener('beforeunload', revokePreviews);
+updateTextPreview();
+initialize();
 </script></body></html>
