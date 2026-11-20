@@ -76,10 +76,23 @@ $('accountForm').addEventListener('submit',async e=>{
         showMessage('<strong>Quase lá!</strong> O Supabase criou o pedido de cadastro. Confira sua caixa de entrada e confirme o e-mail. Depois volte aqui e entre com sua conta.');
       }
     }else{
-      const {error}=await supabase.auth.signInWithPassword({email,password});
+      const {data,error}=await supabase.auth.signInWithPassword({email,password});
       if(error) throw error;
-      showMessage('<strong>Login realizado!</strong> Abrindo seu perfil...');
-      window.location.href='criar-perfil.html';
+      const userId=data.user?.id;
+      if(!userId) throw new Error('Não foi possível identificar sua conta. Entre novamente.');
+      const {data:profile,error:profileError}=await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id',userId)
+        .maybeSingle();
+      if(profileError) throw profileError;
+      if(profile){
+        showMessage('<strong>Login realizado!</strong> Abrindo a descoberta...');
+        window.location.href='index.html';
+      }else{
+        showMessage('<strong>Login realizado!</strong> Vamos completar seu perfil.');
+        window.location.href='criar-perfil.html';
+      }
     }
   }catch(error){
     let message=error?.message||'Não foi possível concluir. Tente novamente.';
