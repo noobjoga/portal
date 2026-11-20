@@ -23,7 +23,7 @@ main{min-width:0;padding:27px clamp(22px,4vw,60px) 40px}.top{display:flex;align-
 .discovery{min-width:0}.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#19191f;color:#aaa7b1;border-radius:30px;padding:8px 13px;font-size:12px}.filter.selected{background:#38232c;border-color:#704050;color:#ff9bb0}
 .card{height:min(65vh,610px);min-height:430px;position:relative;border-radius:24px;overflow:hidden;background:#29252c;box-shadow:0 25px 80px #0008;border:1px solid #45404a}
 .card{touch-action:pan-y;user-select:none;cursor:grab;transition:transform .22s ease,opacity .22s ease}.card.dragging{transition:none;cursor:grabbing}.swipe-hint{position:absolute;z-index:3;top:82px;padding:9px 15px;border:2px solid currentColor;border-radius:10px;font-weight:900;letter-spacing:2px;font-size:18px;opacity:0;pointer-events:none}.swipe-like{right:22px;color:#8de2d0;transform:rotate(10deg)}.swipe-pass{left:22px;color:#ff829c;transform:rotate(-10deg)}
-.person-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%;filter:saturate(.88)}
+.person-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%;filter:saturate(.88)}.person-photo[hidden]{display:none}.person-initial{position:absolute;inset:0;display:grid;place-items:center;font:800 110px Manrope;color:#ffffff20;background:radial-gradient(circle at 50% 35%,#684354,#29232d 62%,#17161c)}
 .card:after{content:"";position:absolute;inset:25% 0 0;background:linear-gradient(transparent,#0c0b0edb 88%)}
 .photo-tag{position:absolute;z-index:2;top:18px;left:18px;background:#17151bc9;border:1px solid #ffffff30;padding:8px 12px;border-radius:30px;font-size:11px;backdrop-filter:blur(10px)}
 .loop-tag{position:absolute;z-index:2;top:18px;right:18px;background:#211c27d9;color:#ffc0cf;padding:8px 11px;border-radius:30px;font-size:11px}
@@ -62,7 +62,7 @@ main{min-width:0;padding:27px clamp(22px,4vw,60px) 40px}.top{display:flex;align-
     <div class="discovery">
       <div class="filters"><button class="filter selected">Para você</button><button class="filter">Perto de mim</button><button class="filter">Interesses em comum</button></div>
       <div class="card" id="profileCard">
-        <img class="person-photo" id="personPhoto" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=85" alt="Foto ilustrativa de perfil">
+        <img class="person-photo" id="personPhoto" alt="Foto do perfil" hidden><div class="person-initial" id="personInitial">M</div>
         <div class="photo-tag">✦ Perfil em destaque</div><div class="loop-tag" id="loopTag">◌ Primeiro encontro</div><div class="swipe-hint swipe-like" id="swipeLikeHint">CURTIR ♥</div><div class="swipe-hint swipe-pass" id="swipePassHint">× PASSAR</div>
         <div class="person-info"><div class="person-name"><span id="personName">Marina</span> <small id="personAge">27</small> <span class="verified">●</span></div>
           <div class="location" id="personLocation">⌖ São Paulo, SP · 8 km de você</div>
@@ -87,41 +87,166 @@ main{min-width:0;padding:27px clamp(22px,4vw,60px) 40px}.top{display:flex;align-
         <button class="panel-link" id="howBtn">Entenda a ideia →</button>
       </div>
       <div class="panel"><h3>Seu pequeno mapa</h3><div class="stat-row"><span>Perfis vistos</span><strong id="seenCount">1</strong></div><div class="stat-row"><span>Curtidas</span><strong id="likeCount">0</strong></div><div class="stat-row"><span>No seu Loop</span><strong id="loopCount">0</strong></div></div>
-      <div class="panel tip"><div class="tip-icon">✧</div><div><h3>Um lembrete</h3><p>Você não precisa decidir tudo agora. Explore no seu ritmo. Este é apenas um protótipo com perfis fictícios.</p></div></div>
+      <div class="panel tip"><div class="tip-icon">✧</div><div><h3>Um lembrete</h3><p>Você não precisa decidir tudo agora. Explore no seu ritmo. Os perfis exibidos aqui vêm das contas cadastradas no Maze Loop.</p></div></div>
     </aside>
   </section>
 </main>
 </div>
 <div class="toast" id="toast"></div>
-<script>
-const people=[
-{name:'Marina',age:27,location:'São Paulo, SP · 8 km de você',bio:'Gosto de descobrir cafés escondidos, viajar sem roteiro e conversar sobre qualquer coisa até perder a noção do tempo.',interests:['☕ Cafés','✈ Viagens','♫ Música'],photo:'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=85'},
-{name:'Lucas',age:29,location:'São Paulo, SP · 5 km de você',bio:'Fotografia, trilhas e aquele tipo de conversa que começa sem assunto e termina de madrugada.',interests:['📷 Fotografia','🌿 Natureza','🎬 Cinema'],photo:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1000&q=85'},
-{name:'Isabela',age:25,location:'Osasco, SP · 14 km de você',bio:'Entre um livro e outro, estou planejando a próxima viagem. Gosto de gente curiosa e de boas risadas.',interests:['📚 Livros','🌎 Viagens','🐈 Gatos'],photo:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=85'},
-{name:'André',age:31,location:'São Paulo, SP · 11 km de você',bio:'Cozinho ouvindo música, corro no parque e acredito que simplicidade também pode surpreender.',interests:['🍳 Cozinha','🏃 Corrida','🎸 Música'],photo:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=1000&q=85'}
-];
-let index=0,seen=1,likes=0,loops=0;const looped=new Set();
-const $=id=>document.getElementById(id);
-function render(){const p=people[index];if(!p){$('profileCard').innerHTML='<div class="empty"><div><div style="font-size:38px">⟳</div><h2>Você chegou ao fim deste caminho.</h2><p>Por enquanto, estes são todos os perfis da demonstração. Você pode recomeçar e explorar de novo.</p><button id="restartBtn">Recomeçar exploração</button></div></div>';$('actionRow').style.display='none';$('restartBtn').onclick=()=>{index=0;seen=1;$('actionRow').style.display='flex';render();updateStats()};return}
-$('personName').textContent=p.name;$('personAge').textContent=p.age;$('personLocation').textContent='⌖ '+p.location;$('personBio').textContent=p.bio;$('personPhoto').src=p.photo;$('personInterests').innerHTML=p.interests.map(x=>'<span class="interest">'+x+'</span>').join('');$('loopTag').textContent=looped.has(p.name)?'⟳ Já passou pelo seu Loop':'◌ Primeiro encontro';}
-function updateStats(){$('seenCount').textContent=seen;$('likeCount').textContent=likes;$('loopCount').textContent=loops}
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),1900)}
-function next(){index++;if(index<people.length)seen++;render();updateStats()}
-const swipeCard=$('profileCard');let startX=0,startY=0,dragging=false;
-swipeCard.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;startX=e.clientX;startY=e.clientY;dragging=true;swipeCard.classList.add('dragging');swipeCard.setPointerCapture(e.pointerId)});
-swipeCard.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-startX,dy=e.clientY-startY;if(Math.abs(dy)>Math.abs(dx)*1.25&&Math.abs(dy)>12)return;swipeCard.style.transform='translateX('+dx+'px) rotate('+(dx*.035)+'deg)';$('swipeLikeHint').style.opacity=String(Math.max(0,Math.min(1,dx/90)));$('swipePassHint').style.opacity=String(Math.max(0,Math.min(1,-dx/90)))});
-function finishSwipe(e){if(!dragging)return;dragging=false;const dx=e.clientX-startX;swipeCard.classList.remove('dragging');$('swipeLikeHint').style.opacity='0';$('swipePassHint').style.opacity='0';if(dx>95){swipeCard.style.transform='translateX(120%) rotate(18deg)';likes++;toast('Curtida registrada nesta demonstração ♥');setTimeout(()=>{swipeCard.style.transform='';next()},160)}else if(dx< -95){swipeCard.style.transform='translateX(-120%) rotate(-18deg)';toast('Caminho seguido.');setTimeout(()=>{swipeCard.style.transform='';next()},160)}else{swipeCard.style.transform='';}}
-swipeCard.addEventListener('pointerup',finishSwipe);swipeCard.addEventListener('pointercancel',()=>{dragging=false;swipeCard.classList.remove('dragging');swipeCard.style.transform='';$('swipeLikeHint').style.opacity='0';$('swipePassHint').style.opacity='0'});
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-$('passBtn').onclick=()=>{toast('Caminho seguido.');next()};
-$('friendBtn').onclick=()=>toast('Solicitação de amizade: a estrutura está sendo preparada. Este perfil ainda é de demonstração.');
-$('likeBtn').onclick=()=>{likes++;toast('Curtida registrada nesta demonstração ♥');next()};
-$('loopBtn').onclick=()=>{if(!looped.has(people[index].name)){looped.add(people[index].name);loops++;toast(people[index].name+' entrou no seu Loop ⟳')}else toast('Essa pessoa já está no seu Loop.');render();updateStats()};
-$('accountNav').onclick=()=>{window.location.href='cadastro.html'};
-$('matchesNav').onclick=()=>toast('Você ainda não tem curtidas nesta demonstração.');
-$('loopNav').onclick=()=>{window.location.href='meu-perfil.html'};
-$('howBtn').onclick=()=>toast('A ideia é explorar caminhos e reencontrar pessoas ao longo do tempo.');
-document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');toast('Filtro visual selecionado: '+b.textContent)});
+const SUPABASE_URL = 'https://xovdwvrawnymhpobxuzc.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_UjNuZKeDQDgBzVNHqOh4Ww_O4ul5OI5';
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+let people = [];
+let index = 0;
+let seen = 0;
+let likes = 0;
+let loops = 0;
+const $ = id => document.getElementById(id);
+
+function toast(message) {
+  const element = $('toast');
+  element.textContent = message;
+  element.classList.add('show');
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => element.classList.remove('show'), 2300);
+}
+function updateStats() {
+  $('seenCount').textContent = seen;
+  $('likeCount').textContent = likes;
+  $('loopCount').textContent = loops;
+}
+function showEmpty(title, message, actionLabel, action) {
+  $('profileCard').innerHTML = '<div class="empty"><div><div style="font-size:38px">⟳</div><h2></h2><p></p><button type="button"></button></div></div>';
+  $('profileCard').querySelector('h2').textContent = title;
+  $('profileCard').querySelector('p').textContent = message;
+  const button = $('profileCard').querySelector('button');
+  button.textContent = actionLabel;
+  button.onclick = action;
+  $('actionRow').style.display = 'none';
+}
+function render() {
+  const person = people[index];
+  if (!person) {
+    showEmpty(
+      people.length ? 'Você viu todos os perfis disponíveis.' : 'Ainda não há outras pessoas por aqui.',
+      people.length
+        ? 'Quando novas pessoas criarem seus perfis, elas poderão aparecer nesta descoberta.'
+        : 'Seu perfil está conectado, mas ainda precisamos de outra pessoa cadastrada para testar a descoberta real. Convide alguém para criar uma conta e completar o perfil.',
+      people.length ? 'Recomeçar descoberta' : 'Atualizar perfis',
+      people.length ? () => { index = 0; seen = 1; render(); updateStats(); } : loadPeople
+    );
+    return;
+  }
+  $('actionRow').style.display = 'flex';
+  $('personName').textContent = person.display_name || 'Pessoa do Maze Loop';
+  $('personAge').textContent = '';
+  $('personLocation').textContent = '⌖ ' + (person.city || 'Localização não informada');
+  $('personBio').textContent = person.bio || 'Esta pessoa ainda não adicionou uma descrição.';
+  $('personInterests').replaceChildren();
+  (Array.isArray(person.interests) ? person.interests : []).slice(0, 8).forEach(value => {
+    const chip = document.createElement('span');
+    chip.className = 'interest';
+    chip.textContent = value;
+    $('personInterests').appendChild(chip);
+  });
+  $('personPhoto').hidden = true;
+  $('personInitial').textContent = (person.display_name || 'M').trim().charAt(0).toUpperCase();
+  $('loopTag').textContent = '◌ Perfil cadastrado';
+}
+function next() {
+  index++;
+  if (index < people.length) seen++;
+  render();
+  updateStats();
+}
+async function loadPeople() {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) {
+    console.error(authError);
+    showEmpty('Não foi possível verificar sua conta.', 'Atualize a página e tente novamente.', 'Tentar novamente', loadPeople);
+    return;
+  }
+  if (!user) {
+    showEmpty('Entre para descobrir pessoas.', 'A descoberta real está disponível para usuários conectados. Entre ou crie sua conta para continuar.', 'Entrar / criar conta', () => { window.location.href = 'cadastro.html'; });
+    return;
+  }
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id,display_name,bio,city,interests,created_at')
+    .neq('id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) {
+    console.error(error);
+    showEmpty('Não conseguimos carregar os perfis.', 'A consulta ao banco de dados falhou. Confira a conexão e tente novamente.', 'Tentar novamente', loadPeople);
+    return;
+  }
+  people = (data || []).filter(profile => profile.display_name);
+  index = 0;
+  seen = people.length ? 1 : 0;
+  render();
+  updateStats();
+}
+const swipeCard = $('profileCard');
+let startX = 0;
+let dragging = false;
+swipeCard.addEventListener('pointerdown', event => {
+  if (event.target.closest('button')) return;
+  if (event.pointerType === 'mouse' && event.button !== 0) return;
+  startX = event.clientX;
+  dragging = true;
+  swipeCard.classList.add('dragging');
+  swipeCard.setPointerCapture(event.pointerId);
+});
+swipeCard.addEventListener('pointermove', event => {
+  if (!dragging) return;
+  const dx = event.clientX - startX;
+  swipeCard.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx * .035) + 'deg)';
+  $('swipeLikeHint').style.opacity = String(Math.max(0, Math.min(1, dx / 90)));
+  $('swipePassHint').style.opacity = String(Math.max(0, Math.min(1, -dx / 90)));
+});
+function finishSwipe(event) {
+  if (!dragging) return;
+  dragging = false;
+  const dx = event.clientX - startX;
+  swipeCard.classList.remove('dragging');
+  $('swipeLikeHint').style.opacity = '0';
+  $('swipePassHint').style.opacity = '0';
+  if (Math.abs(dx) > 95) {
+    swipeCard.style.transform = dx > 0 ? 'translateX(120%) rotate(18deg)' : 'translateX(-120%) rotate(-18deg)';
+    if (dx > 0) toast('A curtida será ativada na próxima etapa.');
+    else toast('Perfil passado nesta sessão.');
+    setTimeout(() => { swipeCard.style.transform = ''; next(); }, 160);
+  } else {
+    swipeCard.style.transform = '';
+  }
+}
+swipeCard.addEventListener('pointerup', finishSwipe);
+swipeCard.addEventListener('pointercancel', () => {
+  dragging = false;
+  swipeCard.classList.remove('dragging');
+  swipeCard.style.transform = '';
+  $('swipeLikeHint').style.opacity = '0';
+  $('swipePassHint').style.opacity = '0';
+});
+$('passBtn').onclick = () => { toast('Perfil passado nesta sessão.'); next(); };
+$('friendBtn').onclick = () => toast('Solicitações de amizade serão conectadas na próxima etapa.');
+$('likeBtn').onclick = () => toast('Curtidas reais serão conectadas na próxima etapa.');
+$('loopBtn').onclick = () => toast('Seu Loop será conectado na próxima etapa.');
+$('accountNav').onclick = () => { window.location.href = 'cadastro.html'; };
+$('matchesNav').onclick = () => toast('A área de curtidas será ativada na próxima etapa.');
+$('loopNav').onclick = () => { window.location.href = 'meu-perfil.html'; };
+$('howBtn').onclick = () => toast('Explore perfis reais e descubra novas conexões.');
+document.querySelectorAll('.filter').forEach(button => button.onclick = () => {
+  document.querySelectorAll('.filter').forEach(item => item.classList.remove('selected'));
+  button.classList.add('selected');
+  toast('Os filtros serão conectados depois da descoberta básica.');
+});
+loadPeople();
 </script>
 <script type="module" src="/auth-ui.js"></script>
 <script type="module" src="/pwa.js"></script>
