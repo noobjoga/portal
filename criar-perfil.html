@@ -90,10 +90,6 @@ function revokePreviews() {
 }
 function renderPhotos() {
   $('previews').replaceChildren();
-  const all = [
-    ...storedPhotos.map(photo => ({ url: photo.url, label: 'Foto salva' })),
-    ...selectedFiles.map(file => ({ url: URL.createObjectURL(file), label: 'Nova foto' }))
-  ];
   // Recria as URLs locais sem manter referências antigas.
   revokePreviews();
   const localItems = selectedFiles.map(file => {
