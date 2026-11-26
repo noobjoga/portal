@@ -1,0 +1,12 @@
+[
+  {
+    "id": "sequencia-logica",
+    "title": "Desafio das sequências",
+    "description": "Descubra o padrão dos números e complete cada sequência. Um treino rápido de raciocínio lógico.",
+    "category": "Lógica · Iniciante",
+    "icon": "🧩",
+    "path": "/games/sequencia-logica/index.html",
+    "author": "AGORA",
+    "license": "Original AGORA"
+  }
+]
