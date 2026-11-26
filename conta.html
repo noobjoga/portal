@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102a43"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml">
+<title>Minha conta — AGORA</title>
+<style>
+:root{color-scheme:light;--bg:#f1f6fa;--panel:#fff;--ink:#173247;--muted:#637b8b;--line:#dce7ee;--blue:#176b87;--teal:#20c6b7}
+[data-theme=dark]{color-scheme:dark;--bg:#0c1d2b;--panel:#132a3b;--ink:#edf7fb;--muted:#a6bac7;--line:#294456;--blue:#2692ad}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif;display:grid;place-items:center;padding:18px}.card{width:min(100%,470px);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:clamp(22px,5vw,34px);box-shadow:0 18px 50px #17324714}.brand{font-weight:950;letter-spacing:2px;font-size:23px}.brand span{color:var(--teal)}.eyebrow{color:var(--blue);font-weight:850;letter-spacing:1.5px;text-transform:uppercase;font-size:11px;margin-top:25px}h1{font-size:29px;line-height:1.15;margin:7px 0}.intro,.hint{color:var(--muted)}.intro{font-size:13px;margin-bottom:20px}.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);padding:4px;border-radius:12px;margin:20px 0}.tabs button{border:0;background:none;color:var(--muted);padding:11px;border-radius:9px;font-weight:800}.tabs button.active{background:var(--panel);color:var(--blue);box-shadow:0 2px 8px #0001}.field{display:grid;gap:7px;margin:15px 0}label{font-size:12px;font-weight:800}input{width:100%;padding:13px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);font:inherit}button{cursor:pointer}.submit{width:100%;border:0;border-radius:12px;background:var(--blue);color:white;font-weight:850;padding:13px;margin-top:8px}.submit:disabled{opacity:.6}.message{display:none;margin-top:15px;padding:13px;border-radius:12px;background:var(--bg);font-size:13px;overflow-wrap:anywhere}.message.show{display:block}.back{display:inline-block;margin-top:20px;color:var(--blue);font-weight:800;text-decoration:none}.privacy{font-size:11px;color:var(--muted);margin-top:20px}.account-actions{display:none}.account-actions.show{display:block}.secondary{border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);padding:10px 13px;font-weight:800}
+</style></head>
+<body><main class="card">
+<div class="brand">✦ <span>AGORA</span></div><div class="eyebrow">Sua conta, se quiser</div>
+<h1 id="title">Entre para guardar seu progresso</h1><p class="intro" id="intro">Você pode explorar o AGORA sem cadastro. A conta é opcional e serve para sincronizar suas descobertas entre aparelhos.</p>
+<section id="authArea">
+<div class="tabs"><button class="active" id="signupTab" type="button">Criar conta</button><button id="loginTab" type="button">Entrar</button></div>
+<form id="accountForm"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" placeholder="voce@exemplo.com" required></div>
+<div class="field"><label for="password">Senha</label><input id="password" type="password" minlength="8" autocomplete="new-password" placeholder="Pelo menos 8 caracteres" required></div>
+<div class="field" id="confirmField"><label for="confirm">Confirme a senha</label><input id="confirm" type="password" minlength="8" autocomplete="new-password" placeholder="Digite novamente"></div>
+<button class="submit" id="submitBtn" type="submit">Criar minha conta</button></form></section>
+<section class="account-actions" id="accountArea"><p id="signedEmail"></p><p class="intro">Sua conta está conectada. O progresso será sincronizado quando a tabela de aprendizagem estiver ativada no banco.</p><button class="secondary" id="logoutBtn" type="button">Sair da conta</button></section>
+<div class="message" id="message" role="status" aria-live="polite"></div>
+<a class="back" href="/">← Voltar ao AGORA</a><p class="privacy">Não criamos perfil público. Não pedimos nome, idade, cidade ou foto. Seu e-mail é usado somente para autenticação.</p>
+</main>
+<script type="module">
+import { supabase } from "/agora-supabase.js";
+const $=id=>document.getElementById(id);let mode="signup";
+function message(text){$("message").textContent=text;$("message").classList.add("show");}
+function setMode(next){mode=next;const signup=mode==="signup";$("signupTab").classList.toggle("active",signup);$("loginTab").classList.toggle("active",!signup);$("title").textContent=signup?"Crie sua conta":"Que bom ter você de volta";$("intro").textContent=signup?"Crie uma conta opcional para guardar suas descobertas e sincronizar o progresso.":"Entre para continuar de onde parou."; $("confirmField").hidden=!signup;$("confirm").required=signup;$("password").autocomplete=signup?"new-password":"current-password";$("submitBtn").textContent=signup?"Criar minha conta":"Entrar";$("message").classList.remove("show");}
+$("signupTab").addEventListener("click",()=>setMode("signup"));$("loginTab").addEventListener("click",()=>setMode("login"));
+function showUser(user){$("authArea").hidden=!!user;$("accountArea").classList.toggle("show",!!user);if(user){$("signedEmail").textContent="Conectado como "+user.email;$("title").textContent="Sua conta AGORA";$("intro").textContent="Você está conectado.";}else{setMode("signup");}}
+$("accountForm").addEventListener("submit",async e=>{e.preventDefault();const email=$("email").value.trim(),password=$("password").value;if(mode==="signup"&&password!==$("confirm").value){message("As senhas não conferem.");return;}const btn=$("submitBtn");btn.disabled=true;btn.textContent="Aguarde...";try{if(mode==="signup"){const {data,error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:location.origin+"/conta.html"}});if(error)throw error;if(data.session){showUser(data.user);message("Conta criada. Você já pode voltar ao AGORA.");}else message("Pedido de cadastro criado. Confira seu e-mail para confirmar a conta e depois entre aqui.");}else{const {data,error}=await supabase.auth.signInWithPassword({email,password});if(error)throw error;showUser(data.user);message("Login realizado. Seu progresso pode ser sincronizado.");}}catch(err){let msg=err?.message||"Não foi possível concluir. Tente novamente.";if(msg.toLowerCase().includes("invalid login credentials"))msg="E-mail ou senha incorretos.";if(msg.toLowerCase().includes("user already registered"))msg="Este e-mail já tem conta. Use a opção Entrar.";message(msg);}finally{btn.disabled=false;btn.textContent=mode==="signup"?"Criar minha conta":"Entrar";}});
+$("logoutBtn").addEventListener("click",async()=>{const {error}=await supabase.auth.signOut();if(error){message("Não foi possível sair. Tente novamente.");return;}showUser(null);message("Você saiu da conta.");});
+const {data:{session}}=await supabase.auth.getSession();showUser(session?.user||null);
+supabase.auth.onAuthStateChange((_event,session)=>showUser(session?.user||null));
+</script></body></html>
