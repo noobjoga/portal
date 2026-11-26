@@ -8,5 +8,35 @@
     "path": "/games/sequencia-logica/index.html",
     "author": "AGORA",
     "license": "Original AGORA"
+  },
+  {
+    "id": "memoria-selvagem",
+    "title": "Memória Selvagem",
+    "description": "Encontre os pares de animais e desbloqueie curiosidades da natureza.",
+    "category": "Memória · Natureza",
+    "icon": "🐾",
+    "path": "/games/memoria-selvagem/index.html",
+    "author": "AGORA",
+    "license": "Criação original AGORA"
+  },
+  {
+    "id": "missao-espacial",
+    "title": "Missão Espacial",
+    "description": "Pilote uma nave, colete os planetas e desvie dos asteroides.",
+    "category": "Arcade · Universo",
+    "icon": "🚀",
+    "path": "/games/missao-espacial/index.html",
+    "author": "AGORA",
+    "license": "Criação original AGORA"
+  },
+  {
+    "id": "detetives-natureza",
+    "title": "Detetives da Natureza",
+    "description": "Monte cadeias alimentares e descubra como a vida está conectada.",
+    "category": "Puzzle · Ecologia",
+    "icon": "🌳",
+    "path": "/games/detetives-natureza/index.html",
+    "author": "AGORA",
+    "license": "Criação original AGORA"
   }
 ]
