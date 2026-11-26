@@ -32,3 +32,8 @@ Depois, para usar `mazeloop.com`, será necessário mover o domínio do projeto 
 - O arquivo `index-namoro-old.html` foi guardado nessa branch como cópia da antiga página inicial de namoro. O arquivo `index-old.html` já existente é uma página antiga do Maze Clip; não foi sobrescrito.
 - O backup do banco Supabase e dos arquivos de fotos ainda precisa ser feito antes de qualquer alteração ou exclusão desses dados.
 - Ainda é necessário testar a versão publicada em navegadores e aparelhos reais antes de divulgar amplamente.
+
+
+## Conta e sincronização de progresso
+
+O AGORA continua funcionando sem cadastro. Para quem quiser sincronizar descobertas entre aparelhos, a página `conta.html` usa o projeto Supabase já existente, sem reaproveitar perfis públicos ou dados sociais antigos. A tabela nova `learning_progress` é criada pelo arquivo `supabase-agora-progress.sql`. Esse SQL ainda precisa ser executado no SQL Editor do Supabase para habilitar a sincronização na nuvem; até lá, o progresso fica salvo no próprio aparelho.
