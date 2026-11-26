@@ -92,8 +92,8 @@
 </div>
 <nav class="mobilebar" aria-label="Navegação móvel"><button class="active" data-page="inicio"><span>⌂</span>Início</button><button data-page="explorar"><span>⌕</span>Explorar</button><button data-page="livros"><span>▤</span>Livros</button><button data-page="jogos"><span>♟</span>Jogos</button><button data-page="aprender"><span>✧</span>Aprender</button><button data-page="progresso"><span>◷</span>Progresso</button></nav>
 <script type="module">
+import { supabase } from "/agora-supabase.js";
 (() => {
- import { supabase } from "/agora-supabase.js";
  const titles={inicio:"O que vamos descobrir hoje?",explorar:"Explore novas ideias.",livros:"Uma biblioteca de possibilidades.",jogos:"Aprender também pode ser divertido.",aprender:"Siga sua curiosidade.",progresso:"Seu caminho de aprendizagem."};
  function go(page){document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));document.getElementById("pageTitle").textContent=titles[page]||"AGORA";window.scrollTo({top:0,behavior:"smooth"});}
  document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
