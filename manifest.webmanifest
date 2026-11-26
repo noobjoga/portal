@@ -1,18 +1,16 @@
 {
-  "id": "/",
-  "name": "Maze Loop",
-  "short_name": "Maze Loop",
-  "description": "Todo encontro começa em um loop diferente.",
-  "lang": "pt-BR",
-  "start_url": "/index.html",
+  "name": "AGORA — descubra, explore e aprenda",
+  "short_name": "AGORA",
+  "description": "Um aplicativo para descobrir, explorar, ler e aprender jogando.",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#101014",
-  "theme_color": "#101014",
+  "background_color": "#f1f6fa",
+  "theme_color": "#102a43",
+  "categories": ["education", "books", "games"],
   "icons": [
     {
-      "src": "/icons/maze-loop.svg",
+      "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
