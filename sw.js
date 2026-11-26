@@ -1,5 +1,5 @@
-const CACHE="agora-learning-v3";
-const FILES=["/","/index.html","/manifest.webmanifest","/icon.svg","/games/catalog.json","/games/sequencia-logica/index.html","/conta.html","/agora-supabase.js"];
+const CACHE="agora-learning-v4";
+const FILES=["/","/index.html","/manifest.webmanifest","/icon.svg","/games/catalog.json","/games/sequencia-logica/index.html","/games/memoria-selvagem/index.html","/games/missao-espacial/index.html","/games/detetives-natureza/index.html","/conta.html","/agora-supabase.js"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",event=>{
