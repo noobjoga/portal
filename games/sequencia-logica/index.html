@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102a43">
+<title>Desafio das sequências — AGORA</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#173247;background:#f1f6fa}*{box-sizing:border-box}body{margin:0;padding:22px;min-height:100vh;display:grid;place-items:center}.game{width:min(100%,560px);background:#fff;border:1px solid #dce7ee;border-radius:22px;padding:clamp(20px,5vw,34px);box-shadow:0 16px 40px #102a4314}.eyebrow{color:#176b87;text-transform:uppercase;letter-spacing:1.4px;font-size:11px;font-weight:850}.progress{height:7px;background:#e7f0f5;border-radius:99px;overflow:hidden;margin:14px 0 22px}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#176b87,#20c6b7);transition:width .25s}.question{font-size:clamp(23px,5vw,30px);margin:8px 0}.sequence{font-size:clamp(26px,7vw,38px);font-weight:850;letter-spacing:3px;text-align:center;padding:22px 8px;background:#f1f6fa;border-radius:15px;margin:18px 0}.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}.answers button{border:1px solid #dce7ee;background:#fff;border-radius:12px;padding:14px;color:#173247;font-size:17px;font-weight:800}.answers button:hover:not(:disabled){border-color:#20c6b7;background:#effcf9}.answers button:disabled{cursor:default;opacity:.75}.feedback{min-height:55px;padding:14px 2px 0;font-weight:750}.meta{display:flex;justify-content:space-between;color:#637b8b;font-size:12px;margin-top:12px}.next{display:none;border:0;border-radius:11px;background:#176b87;color:white;padding:12px 16px;font-weight:850;width:100%;margin-top:10px}.next.show{display:block}.done{text-align:center}.done .big{font-size:54px}.done h2{margin:8px 0}.done p{color:#637b8b}.restart{border:0;border-radius:11px;background:#176b87;color:#fff;padding:12px 16px;font-weight:850}@media(max-width:420px){body{padding:12px}.answers{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main class="game">
+ <div class="eyebrow">AGORA · Raciocínio lógico</div>
+ <div class="progress"><span id="progress"></span></div>
+ <div id="play">
+  <div class="meta"><span id="level">Desafio 1 de 5</span><span id="points">0 pontos</span></div>
+  <h1 class="question">Qual número completa a sequência?</h1>
+  <div class="sequence" id="sequence">2 · 4 · 8 · 16 · ?</div>
+  <div class="answers" id="answers"></div>
+  <div class="feedback" id="feedback" aria-live="polite"></div>
+  <button class="next" id="next">Próximo desafio →</button>
+ </div>
+ <div class="done" id="done" hidden><div class="big">🏆</div><h2>Desafio concluído!</h2><p id="result"></p><button class="restart" id="restart">Jogar novamente</button></div>
+</main>
+<script>
+(()=>{
+ const rounds=[
+  {s:"2 · 4 · 8 · 16 · ?",a:[24,30,32,36],c:32,e:"Cada número é o dobro do anterior."},
+  {s:"3 · 6 · 9 · 12 · ?",a:[14,15,18,21],c:15,e:"A sequência aumenta de 3 em 3."},
+  {s:"1 · 1 · 2 · 3 · 5 · ?",a:[6,7,8,10],c:8,e:"Cada termo é a soma dos dois anteriores."},
+  {s:"20 · 18 · 15 · 11 · ?",a:[8,7,6,5],c:6,e:"Subtraímos 2, depois 3, depois 4 e agora 5."},
+  {s:"2 · 6 · 12 · 20 · ?",a:[24,28,30,32],c:30,e:"Multiplicamos números consecutivos: 1×2, 2×3, 3×4, 4×5 e 5×6."}
+ ];
+ let index=0,score=0,locked=false;
+ const $=id=>document.getElementById(id);
+ function render(){locked=false;$("level").textContent="Desafio "+(index+1)+" de "+rounds.length;$("points").textContent=score+" pontos";$("progress").style.width=(index/rounds.length*100)+"%";$("sequence").textContent=rounds[index].s;$("feedback").textContent="";$("next").classList.remove("show");$("answers").innerHTML="";rounds[index].a.forEach(n=>{const b=document.createElement("button");b.textContent=n;b.addEventListener("click",()=>answer(n,b));$("answers").append(b)});}
+ function answer(value,button){if(locked)return;locked=true;const round=rounds[index];const correct=value===round.c;if(correct){score+=10;$("feedback").textContent="Muito bem! "+round.e+" +10 pontos.";$("feedback").style.color="#087f70";}else{$("feedback").textContent="Boa tentativa! "+round.e+" A resposta era "+round.c+".";$("feedback").style.color="#176b87";}Array.from($("answers").children).forEach(b=>{b.disabled=true;if(Number(b.textContent)===round.c)b.style.borderColor="#20c6b7";});$("points").textContent=score+" pontos";$("next").textContent=index===rounds.length-1?"Ver resultado →":"Próximo desafio →";$("next").classList.add("show");}
+ $("next").addEventListener("click",()=>{index++;if(index<rounds.length){render();return;}$("play").hidden=true;$("done").hidden=false;$("progress").style.width="100%";$("result").textContent="Você fez "+score+" de 50 pontos. Cada tentativa é uma oportunidade de aprender!";});
+ $("restart").addEventListener("click",()=>{index=0;score=0;$("play").hidden=false;$("done").hidden=true;render();});
+ render();
+})();
+</script>
+</body>
+</html>
