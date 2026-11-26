@@ -121,7 +121,7 @@ import { supabase } from "/agora-supabase.js";
   const art=document.createElement("div");art.className=home?"homegameart":"gameicon";art.textContent=game.icon||"🎮";
   const tag=document.createElement("span");tag.className="tag";tag.textContent=game.category;
   const title=document.createElement("h3");title.textContent=game.title;
-  const p=document.createElement("p");p.textContent=home?game.description:game.description+" · "+(game.license||"Créditos na página do jogo");
+  const p=document.createElement("p");p.textContent=home?game.description:game.description+" · "+(game.author||"Autor não informado")+" · "+(game.license||"licença a confirmar");
   const button=document.createElement("button");button.className=home?"":"pillbtn";button.textContent="Jogar agora";button.addEventListener("click",()=>{if(home)go("jogos");openGame(game)});
   card.append(art,tag,title,p,button);return card;
  }
