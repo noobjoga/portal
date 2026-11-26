@@ -126,7 +126,6 @@ import { supabase } from "/agora-supabase.js";
   games.forEach(game=>{const card=document.createElement("article");card.className="gamecard";const art=document.createElement("div");art.className="gameicon";art.textContent=game.icon||"🎮";const tag=document.createElement("span");tag.className="tag";tag.textContent=game.category;const h=document.createElement("h3");h.textContent=game.title;const p=document.createElement("p");p.textContent=game.description;const button=document.createElement("button");button.className="pillbtn";button.textContent="Jogar agora";button.addEventListener("click",()=>openGame(game));card.append(art,tag,h,p,button);catalog.append(card);});
   if(!games.length)catalog.textContent="Novos jogos estão chegando.";
  }).catch(()=>{catalog.textContent="Não foi possível carregar a biblioteca de jogos agora. Tente novamente mais tarde.";});
- supabase.auth.onAuthStateChange(()=>syncProgress().catch(()=>{}));
  if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
 })();
 </script>
